@@ -87,12 +87,12 @@ Goal: Implement scripted proposal creation and deterministic gating.
 
 - [x] 2.1 Create shared domain types and constants for statuses, decisions, roles, and reversibility classes.
 - [x] 2.2 Implement deterministic condition evaluation for `approval_rules` ordered by priority.
-- [ ] 2.3 Implement `POST /v1/actions/propose`.
-- [ ] 2.4 Ensure sequential idempotency dedupe returns an existing proposal before mutation.
-- [ ] 2.5 Handle concurrent idempotency races by catching SQLSTATE `23505` from the unique idempotency constraint/index, fetching the existing proposal, and returning it without retrying or duplicating work.
-- [ ] 2.6 Snapshot active prior state, insert proposal, gate it, and write audit/trace rows for every mutation.
-- [ ] 2.7 Add scripted `$1,250` `issue_refund` proposal fixture.
-- [ ] 2.8 Verify scripted proposal lands as `approval_required` with finance as required approver and real traces.
+- [x] 2.3 Implement `POST /v1/actions/propose`.
+- [x] 2.4 Ensure sequential idempotency dedupe returns an existing proposal before mutation.
+- [x] 2.5 Handle concurrent idempotency races by catching SQLSTATE `23505` from the unique idempotency constraint/index, fetching the existing proposal, and returning it without retrying or duplicating work.
+- [x] 2.6 Snapshot active prior state, insert proposal, gate it, and write audit/trace rows for every mutation.
+- [x] 2.7 Add scripted `$1,250` `issue_refund` proposal fixture.
+- [x] 2.8 Verify scripted proposal lands as `approval_required` with finance as required approver and real traces.
 
 Phase 2 Definition of Done: the scripted proposal writes to DSQL, gates deterministically, and records trace/audit rows from real database state.
 

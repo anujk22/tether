@@ -13,7 +13,9 @@
     "db:seed-check": "node --env-file-if-exists=.env.local --import tsx scripts/seed-check.ts",
     "db:smoke": "node --env-file-if-exists=.env.local --import tsx scripts/db-smoke.ts",
     "db:retry-check": "node --import tsx scripts/retry-check.ts",
-    "gate:check": "node --env-file-if-exists=.env.local --import tsx scripts/gate-check.ts"
+    "gate:check": "node --env-file-if-exists=.env.local --import tsx scripts/gate-check.ts",
+    "propose:check": "node --env-file-if-exists=.env.local --import tsx scripts/propose-check.ts",
+    "propose:race-check": "node --env-file-if-exists=.env.local --import tsx scripts/propose-race-check.ts"
   },
   "dependencies": {
     "@aws-sdk/credential-providers": "^3.1075.0",

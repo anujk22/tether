@@ -390,3 +390,37 @@ How to verify:
 Next action:
 
 - Commit Phase 2.2, then implement `POST /v1/actions/propose`.
+
+## 2026-06-26 - Phase 2.3-2.8 Propose And Gate Path
+
+Completed:
+
+- Added scripted `$1,250` refund proposal fixture.
+- Implemented `proposeAction` service.
+- Added `POST /v1/actions/propose`.
+- Proposal path validates input, snapshots active prior state, inserts a proposed action, runs the deterministic gate, updates status, and writes audit/trace rows in the same transaction.
+- Sequential idempotency returns an existing proposal before mutation.
+- Concurrent idempotency catches SQLSTATE `23505`, fetches the existing proposal, and returns it without duplicating work.
+- Added `pnpm propose:check` for the scripted proposal and sequential dedupe.
+- Added `pnpm propose:race-check` for three concurrent propose calls with one key.
+- Verified with `pnpm propose:check`, `pnpm propose:race-check`, `pnpm exec tsc --noEmit`, and `pnpm lint`.
+- Marked Phase 2.3 through Phase 2.8 complete in `PLAN.md`.
+
+Decisions:
+
+- Proposed changes include `refund_amount: 1250` so the deterministic threshold gate does not parse amount from text.
+- Auto-approved actions are marked `approved` by the gate; actual auto-execution will be wired in the execute phase.
+
+Current state:
+
+- The scripted refund proposal exists in DSQL as `approval_required` with finance approval required.
+- The proposal path is backed by the unique idempotency constraint/index.
+
+How to verify:
+
+- Run `pnpm propose:check`.
+- Run `pnpm propose:race-check`.
+
+Next action:
+
+- Commit Phase 2, then begin Phase 3.1 decision endpoint and execution path.
