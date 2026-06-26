@@ -92,3 +92,32 @@ How to verify:
 Next action:
 
 - Commit the plan/progress correction, then begin Phase 1.1 scaffolding.
+
+## 2026-06-26 - Phase 1.1 Scaffold
+
+Completed:
+
+- Scaffolded a Next.js App Router + TypeScript + Tailwind v4 project.
+- Moved generated files into the repo root because the workspace folder name is not a valid npm package name.
+- Made pnpm installs noninteractive by explicitly rejecting optional build scripts for `sharp` and `unrs-resolver` in `pnpm-workspace.yaml`.
+- Verified the scaffold with `pnpm lint`.
+- Marked Phase 1.1 complete in `PLAN.md`.
+
+Decisions:
+
+- Keep the generated package name as `tether-app`.
+- Leave optional build scripts disabled unless a later dependency requires them; current lint verification passes.
+
+Current state:
+
+- Next.js scaffold is present in the repo root.
+- Dependencies are installed locally under ignored `node_modules`.
+
+How to verify:
+
+- Run `pnpm install`.
+- Run `pnpm lint`.
+
+Next action:
+
+- Commit Phase 1.1, then add local environment handling for DSQL and AWS credentials.

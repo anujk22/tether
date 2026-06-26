@@ -37,7 +37,7 @@ This plan implements the PRD for Tether: a design-led control plane for AI agent
 
 Goal: Create the Next.js foundation, DSQL connection layer, migrations, and seed data.
 
-- [ ] 1.1 Scaffold the app
+- [x] 1.1 Scaffold the app
   - Files: Next.js app files, `package.json`, `pnpm-lock.yaml`, `.gitignore`, TypeScript/Tailwind config.
   - Tasks: Create a Next.js App Router + TypeScript + Tailwind v4 app in the workspace.
   - Libraries: Next.js, React, Tailwind CSS v4, ESLint.
