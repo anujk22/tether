@@ -69,7 +69,7 @@ Goal: Create the Next.js foundation, DSQL connection layer, migrations, and seed
   - Tasks: Insert one org, three users, one agent, policy/rules, `issue_refund` action type, a `refund_reversal` compensation action type, one customer business entity, and active `entity_versions` v4 state using fixed hardcoded UUIDs.
   - Verify: `pnpm db:seed` is fully re-runnable, does not duplicate seed data, and leaves exactly the expected demo entities.
 
-- [ ] 1.7 Add foundation verification scripts
+- [x] 1.7 Add foundation verification scripts
   - Files: `scripts/db-smoke.ts`, `package.json`.
   - Tasks: Add a smoke check that connects to DSQL, confirms seeded rows, performs a tiny trace/audit-safe test write if appropriate, and exercises retry wrapper behavior without forcing a real conflict.
   - Verify: `pnpm db:smoke` prints a concise success summary.

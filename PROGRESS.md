@@ -279,3 +279,31 @@ How to verify:
 Next action:
 
 - Commit Phase 1.6, then add the foundation smoke script.
+
+## 2026-06-26 - Phase 1.7 Foundation Smoke
+
+Completed:
+
+- Added `pnpm db:smoke`.
+- Smoke script verifies live DSQL connectivity.
+- Smoke script confirms seeded baseline rows and active v4 state.
+- Smoke script exercises `withRetry` locally.
+- Smoke script performs a transactional audit write and paired operation trace write.
+- Verified with `pnpm db:smoke`, `pnpm exec tsc --noEmit`, and `pnpm lint`.
+- Marked Phase 1.7 complete in `PLAN.md`.
+
+Decisions:
+
+- The smoke mutation writes one `audit_events` row and one corresponding `operation_traces` row; it does not create or mutate business action state.
+
+Current state:
+
+- Phase 1 technical foundation is implemented and live-verified against Aurora DSQL.
+
+How to verify:
+
+- Run `pnpm db:smoke`; it should finish with `db:smoke:ok`.
+
+Next action:
+
+- Commit Phase 1.7, then verify git history/status for Phase 1.8.
