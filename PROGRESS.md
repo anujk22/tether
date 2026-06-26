@@ -360,3 +360,33 @@ How to verify:
 Next action:
 
 - Commit Phase 2.1, then implement deterministic approval-rule evaluation.
+
+## 2026-06-26 - Phase 2.2 Gate Evaluation
+
+Completed:
+
+- Added JSON helpers for parsing DSQL `json` values.
+- Added deterministic gate evaluation in `src/lib/tether/gate.ts`.
+- Gate reads `approval_rules` ordered by priority from DSQL.
+- Gate evaluates seeded condition JSON against proposed changes, prior state, and risk level.
+- Added `pnpm gate:check`.
+- Verified the scripted `$1,250` refund routes to `require_approval` with `finance`.
+- Verified with `pnpm exec tsc --noEmit` and `pnpm lint`.
+- Marked Phase 2.2 complete in `PLAN.md`.
+
+Decisions:
+
+- First matching approval rule wins.
+- If no rule matches, the deterministic fallback is `deny` / `rejected`.
+
+Current state:
+
+- The gate is real and data-driven from DSQL, with no model dependency.
+
+How to verify:
+
+- Run `pnpm gate:check`.
+
+Next action:
+
+- Commit Phase 2.2, then implement `POST /v1/actions/propose`.
