@@ -7,7 +7,7 @@ async function main(): Promise<void> {
     const result = await proposeAction(scriptedRefundProposal());
 
     if (
-      !["approval_required", "executed"].includes(result.status) ||
+      !["approval_required", "executed", "compensated"].includes(result.status) ||
       result.gate_decision !== "require_approval" ||
       result.required_approver_role !== "finance" ||
       result.prior_state.refund_status !== "none"

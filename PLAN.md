@@ -112,12 +112,12 @@ Phase 3 Definition of Done: approving the proposal produces exactly one executio
 
 Goal: Make rollback the moat: exact internal restore plus routed external compensation.
 
-- [ ] 4.1 Implement `POST /v1/actions/{id}/rollback`.
-- [ ] 4.2 For `REVERSIBLE_INTERNAL`, append a restoring version and rollback event.
-- [ ] 4.3 For `IRREVERSIBLE_EXTERNAL`, append v6 with state copied from v4 exactly: `refund_status:"none"`, `ticket_priority:"normal"`, `customer_health:"stable"`, `csm_notified:false`.
-- [ ] 4.4 Create a compensation proposal from `issue_refund.compensation_template` targeting seeded `refund_reversal`; route it through the same propose/gate path and prevent recursive compensation.
-- [ ] 4.5 Write rollback, compensation, trace, and audit rows in the same transaction as the state changes they describe.
-- [ ] 4.6 Verify rollback yields v6 = v4 internal state and a routed compensation action in DSQL.
+- [x] 4.1 Implement `POST /v1/actions/{id}/rollback`.
+- [x] 4.2 For `REVERSIBLE_INTERNAL`, append a restoring version and rollback event.
+- [x] 4.3 For `IRREVERSIBLE_EXTERNAL`, append v6 with state copied from v4 exactly: `refund_status:"none"`, `ticket_priority:"normal"`, `customer_health:"stable"`, `csm_notified:false`.
+- [x] 4.4 Create a compensation proposal from `issue_refund.compensation_template` targeting seeded `refund_reversal`; route it through the same propose/gate path and prevent recursive compensation.
+- [x] 4.5 Write rollback, compensation, trace, and audit rows in the same transaction as the state changes they describe.
+- [x] 4.6 Verify rollback yields v6 = v4 internal state and a routed compensation action in DSQL.
 
 Phase 4 Definition of Done: rollback restores internal state and spawns a compensation proposal without any fake control-plane internals.
 

@@ -42,14 +42,22 @@ async function assertSeedBaseline(): Promise<void> {
     query<CountRow>("SELECT count(*)::int AS count FROM approval_rules"),
   ]);
 
-  const version = await query<VersionRow>(
+  const seededVersion = await query<VersionRow>(
     `SELECT version_number, is_active, state->>'refund_status' AS refund_status
      FROM entity_versions
      WHERE id = $1`,
     [DEMO_IDS.entityVersionV4],
   );
+  const currentVersion = await query<VersionRow>(
+    `SELECT ev.version_number, ev.is_active, ev.state->>'refund_status' AS refund_status
+     FROM business_entities be
+     JOIN entity_versions ev ON ev.id = be.current_version_id
+     WHERE be.id = $1`,
+    [DEMO_IDS.entity],
+  );
 
-  const v4 = version.rows[0];
+  const v4 = seededVersion.rows[0];
+  const current = currentVersion.rows[0];
 
   if (
     orgs.rows[0]?.count < 1 ||
@@ -57,8 +65,9 @@ async function assertSeedBaseline(): Promise<void> {
     actionTypes.rows[0]?.count < 2 ||
     rules.rows[0]?.count < 5 ||
     v4?.version_number !== 4 ||
-    v4.is_active !== true ||
-    v4.refund_status !== "none"
+    v4.refund_status !== "none" ||
+    !current?.is_active ||
+    current.version_number < 4
   ) {
     throw new Error("Seed baseline is incomplete");
   }

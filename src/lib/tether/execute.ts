@@ -7,6 +7,7 @@ import { asJsonRecord } from "./json";
 export type ActionRow = {
   id: string;
   org_id: string;
+  agent_id: string;
   entity_id: string;
   action_type_key: string;
   proposed_changes: unknown;

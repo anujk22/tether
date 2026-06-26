@@ -7,7 +7,6 @@ type CountRow = {
 
 type VersionRow = {
   version_number: number;
-  is_active: boolean;
   refund_status: string;
 };
 
@@ -42,7 +41,6 @@ async function main(): Promise<void> {
       actionTypes < 2 ||
       approvalRules < 5 ||
       v4?.version_number !== 4 ||
-      v4.is_active !== true ||
       v4.refund_status !== "none"
     ) {
       throw new Error("Seed verification failed");

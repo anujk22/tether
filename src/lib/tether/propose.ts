@@ -162,132 +162,138 @@ async function loadActionType(
   return row;
 }
 
-async function createProposal(
+export async function createProposalInTransaction(
+  client: PoolClient,
   input: ProposeActionInput,
 ): Promise<ProposeActionResult> {
-  return writeTransaction(async (client) => {
-    const agent = await loadAgent(client, input.agent_id);
-    const entity = await loadEntity(client, agent.org_id, input.entity_id);
+  const agent = await loadAgent(client, input.agent_id);
+  const entity = await loadEntity(client, agent.org_id, input.entity_id);
 
-    if (entity.entity_type !== input.entity_type) {
-      throw new Error("Entity type does not match the requested action");
-    }
+  if (entity.entity_type !== input.entity_type) {
+    throw new Error("Entity type does not match the requested action");
+  }
 
-    const actionType = await loadActionType(client, agent.org_id, input.action_type);
-    const priorState = asJsonRecord(entity.state);
+  const actionType = await loadActionType(client, agent.org_id, input.action_type);
+  const priorState = asJsonRecord(entity.state);
 
-    const inserted = await client.query<{ id: string }>(
-      `INSERT INTO action_proposals
-        (org_id, agent_id, entity_id, action_type_key, proposed_changes,
-         prior_state, rationale, evidence, risk_level, status,
-         reversibility_class, idempotency_key)
-       VALUES ($1, $2, $3, $4, $5::json, $6::json, $7, $8::json, $9, $10, $11, $12)
-       RETURNING id`,
-      [
-        agent.org_id,
-        input.agent_id,
-        input.entity_id,
-        input.action_type,
-        JSON.stringify(input.proposed_changes),
-        JSON.stringify(priorState),
-        input.rationale,
-        JSON.stringify(input.evidence),
-        input.risk_level,
-        "proposed",
-        actionType.reversibility_class,
-        input.idempotency_key,
-      ],
-    );
-    const actionId = inserted.rows[0]?.id;
+  const inserted = await client.query<{ id: string }>(
+    `INSERT INTO action_proposals
+      (org_id, agent_id, entity_id, action_type_key, proposed_changes,
+       prior_state, rationale, evidence, risk_level, status,
+       reversibility_class, idempotency_key)
+     VALUES ($1, $2, $3, $4, $5::json, $6::json, $7, $8::json, $9, $10, $11, $12)
+     RETURNING id`,
+    [
+      agent.org_id,
+      input.agent_id,
+      input.entity_id,
+      input.action_type,
+      JSON.stringify(input.proposed_changes),
+      JSON.stringify(priorState),
+      input.rationale,
+      JSON.stringify(input.evidence),
+      input.risk_level,
+      "proposed",
+      actionType.reversibility_class,
+      input.idempotency_key,
+    ],
+  );
+  const actionId = inserted.rows[0]?.id;
 
-    if (!actionId) {
-      throw new Error("Proposal insert did not return an id");
-    }
+  if (!actionId) {
+    throw new Error("Proposal insert did not return an id");
+  }
 
-    await insertTrace(client, {
-      orgId: agent.org_id,
-      actionId,
-      operation: "INSERT",
-      tableName: "action_proposals",
-      summary: `Inserted proposed ${input.action_type} action.`,
+  await insertTrace(client, {
+    orgId: agent.org_id,
+    actionId,
+    operation: "INSERT",
+    tableName: "action_proposals",
+    summary: `Inserted proposed ${input.action_type} action.`,
+  });
+  await insertAuditEvent(client, {
+    orgId: agent.org_id,
+    actionId,
+    eventType: "action_proposed",
+    payload: {
+      action_type: input.action_type,
+      risk_level: input.risk_level,
+      evidence: asJsonArray(input.evidence),
+    },
+  });
+
+  const gate = await runGate({
+    client,
+    orgId: agent.org_id,
+    actionTypeKey: input.action_type,
+    proposedChanges: input.proposed_changes,
+    priorState,
+    riskLevel: input.risk_level,
+  });
+
+  await client.query("UPDATE action_proposals SET status = $1 WHERE id = $2", [
+    gate.status,
+    actionId,
+  ]);
+  await insertTrace(client, {
+    orgId: agent.org_id,
+    actionId,
+    operation: "UPDATE",
+    tableName: "action_proposals",
+    summary: `Gate set status to ${gate.status}.`,
+  });
+  await insertAuditEvent(client, {
+    orgId: agent.org_id,
+    actionId,
+    eventType: "gate_decided",
+    payload: {
+      decision: gate.decision,
+      status: gate.status,
+      required_approver_role: gate.requiredApproverRole,
+      matched_rule_id: gate.matchedRuleId,
+      policy_title: gate.policyTitle,
+    },
+  });
+
+  if (gate.decision === "auto_approve") {
+    const execution = await executeApprovedAction(client, {
+      id: actionId,
+      org_id: agent.org_id,
+      agent_id: input.agent_id,
+      entity_id: input.entity_id,
+      action_type_key: input.action_type,
+      proposed_changes: input.proposed_changes,
+      prior_state: priorState,
+      status: "approved",
+      reversibility_class: actionType.reversibility_class,
     });
-    await insertAuditEvent(client, {
-      orgId: agent.org_id,
-      actionId,
-      eventType: "action_proposed",
-      payload: {
-        action_type: input.action_type,
-        risk_level: input.risk_level,
-        evidence: asJsonArray(input.evidence),
-      },
-    });
-
-    const gate = await runGate({
-      client,
-      orgId: agent.org_id,
-      actionTypeKey: input.action_type,
-      proposedChanges: input.proposed_changes,
-      priorState,
-      riskLevel: input.risk_level,
-    });
-
-    await client.query("UPDATE action_proposals SET status = $1 WHERE id = $2", [
-      gate.status,
-      actionId,
-    ]);
-    await insertTrace(client, {
-      orgId: agent.org_id,
-      actionId,
-      operation: "UPDATE",
-      tableName: "action_proposals",
-      summary: `Gate set status to ${gate.status}.`,
-    });
-    await insertAuditEvent(client, {
-      orgId: agent.org_id,
-      actionId,
-      eventType: "gate_decided",
-      payload: {
-        decision: gate.decision,
-        status: gate.status,
-        required_approver_role: gate.requiredApproverRole,
-        matched_rule_id: gate.matchedRuleId,
-        policy_title: gate.policyTitle,
-      },
-    });
-
-    if (gate.decision === "auto_approve") {
-      const execution = await executeApprovedAction(client, {
-        id: actionId,
-        org_id: agent.org_id,
-        entity_id: input.entity_id,
-        action_type_key: input.action_type,
-        proposed_changes: input.proposed_changes,
-        prior_state: priorState,
-        status: "approved",
-        reversibility_class: actionType.reversibility_class,
-      });
-
-      return {
-        action_id: actionId,
-        status: execution.status,
-        gate_decision: gate.decision,
-        required_approver_role: gate.requiredApproverRole,
-        reversibility_class: actionType.reversibility_class,
-        prior_state: priorState,
-        deduped: false,
-      };
-    }
 
     return {
       action_id: actionId,
-      status: gate.status,
+      status: execution.status,
       gate_decision: gate.decision,
       required_approver_role: gate.requiredApproverRole,
       reversibility_class: actionType.reversibility_class,
       prior_state: priorState,
       deduped: false,
     };
-  });
+  }
+
+  return {
+    action_id: actionId,
+    status: gate.status,
+    gate_decision: gate.decision,
+    required_approver_role: gate.requiredApproverRole,
+    reversibility_class: actionType.reversibility_class,
+    prior_state: priorState,
+    deduped: false,
+  };
+}
+
+async function createProposal(
+  input: ProposeActionInput,
+): Promise<ProposeActionResult> {
+  return writeTransaction((client) => createProposalInTransaction(client, input));
 }
 
 export async function proposeAction(

@@ -31,7 +31,7 @@ export async function decideAction(
 
   return writeTransaction(async (client) => {
     const loaded = await client.query<ActionRow>(
-      `SELECT id, org_id, entity_id, action_type_key, proposed_changes,
+      `SELECT id, org_id, agent_id, entity_id, action_type_key, proposed_changes,
          prior_state, status, reversibility_class
        FROM action_proposals
        WHERE id = $1

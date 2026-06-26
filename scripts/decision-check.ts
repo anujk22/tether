@@ -12,9 +12,31 @@ type CurrentVersionRow = {
   csm_notified: boolean;
 };
 
+type ExecutionRow = {
+  count: number;
+};
+
 async function main(): Promise<void> {
   try {
     const proposal = await proposeAction(scriptedRefundProposal());
+
+    if (proposal.status === "compensated") {
+      const execution = await query<ExecutionRow>(
+        `SELECT count(*)::int AS count
+         FROM executions
+         WHERE action_id = $1
+           AND result = 'simulated_refund_written'`,
+        [proposal.action_id],
+      );
+
+      if (!execution.rows[0]?.count) {
+        throw new Error("Compensated action has no original execution row");
+      }
+
+      console.log(`decision:ok action=${proposal.action_id} already_compensated`);
+      return;
+    }
+
     const decision = await decideAction(proposal.action_id, {
       decision: "approve",
       note: "Finance approval for duplicate-charge remediation.",

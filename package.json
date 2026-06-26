@@ -16,7 +16,8 @@
     "gate:check": "node --env-file-if-exists=.env.local --import tsx scripts/gate-check.ts",
     "decision:check": "node --env-file-if-exists=.env.local --import tsx scripts/decision-check.ts",
     "propose:check": "node --env-file-if-exists=.env.local --import tsx scripts/propose-check.ts",
-    "propose:race-check": "node --env-file-if-exists=.env.local --import tsx scripts/propose-race-check.ts"
+    "propose:race-check": "node --env-file-if-exists=.env.local --import tsx scripts/propose-race-check.ts",
+    "rollback:check": "node --env-file-if-exists=.env.local --import tsx scripts/rollback-check.ts"
   },
   "dependencies": {
     "@aws-sdk/credential-providers": "^3.1075.0",

@@ -458,3 +458,38 @@ How to verify:
 Next action:
 
 - Commit Phase 3, then implement rollback and compensation.
+
+## 2026-06-26 - Phase 4 Rollback And Compensation
+
+Completed:
+
+- Refactored proposal creation so rollback can create compensation proposals inside the active rollback transaction.
+- Added rollback service in `src/lib/tether/rollback.ts`.
+- Added `POST /v1/actions/{id}/rollback`.
+- Rollback appends v6 with state copied from the original v4 prior state.
+- Rollback writes `rollback_events`, audit rows, and operation traces.
+- For `IRREVERSIBLE_EXTERNAL`, rollback creates a `refund_reversal` compensation proposal from the seeded template.
+- Compensation routes through the same proposal/gate path and auto-executes as a simulated external reversal request.
+- Added `pnpm rollback:check`.
+- Updated older verification scripts so they remain valid after the live state advances to v6/compensated.
+- Verified with `pnpm rollback:check`, `pnpm db:seed-check`, `pnpm db:smoke`, `pnpm propose:check`, `pnpm decision:check`, `pnpm exec tsc --noEmit`, and `pnpm lint`.
+- Marked Phase 4.1 through Phase 4.6 complete in `PLAN.md`.
+
+Decisions:
+
+- Original `issue_refund` status becomes `compensated` after rollback because it is an irreversible external action with a routed compensation.
+- v6 contains only restored internal state; the external correction exists as the compensation action and execution row.
+
+Current state:
+
+- The scripted refund action is compensated.
+- The customer current version is v6, with v4's internal state restored.
+- A `refund_reversal` compensation action exists and is executed.
+
+How to verify:
+
+- Run `pnpm rollback:check`.
+
+Next action:
+
+- Commit Phase 4, then implement read APIs, live Flight Recorder data, and Retry x3 proof endpoints for Phase 5.
