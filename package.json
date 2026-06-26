@@ -17,7 +17,9 @@
     "decision:check": "node --env-file-if-exists=.env.local --import tsx scripts/decision-check.ts",
     "propose:check": "node --env-file-if-exists=.env.local --import tsx scripts/propose-check.ts",
     "propose:race-check": "node --env-file-if-exists=.env.local --import tsx scripts/propose-race-check.ts",
-    "rollback:check": "node --env-file-if-exists=.env.local --import tsx scripts/rollback-check.ts"
+    "rollback:check": "node --env-file-if-exists=.env.local --import tsx scripts/rollback-check.ts",
+    "read:check": "node --env-file-if-exists=.env.local --import tsx scripts/read-check.ts",
+    "retry-proof:check": "node --env-file-if-exists=.env.local --import tsx scripts/retry-proof-check.ts"
   },
   "dependencies": {
     "@aws-sdk/credential-providers": "^3.1075.0",

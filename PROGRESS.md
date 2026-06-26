@@ -493,3 +493,38 @@ How to verify:
 Next action:
 
 - Commit Phase 4, then implement read APIs, live Flight Recorder data, and Retry x3 proof endpoints for Phase 5.
+
+## 2026-06-26 - Phase 5 Read APIs And Retry Proof
+
+Completed:
+
+- Added read model helpers in `src/lib/tether/read-model.ts`.
+- Added APIs for dashboard data, actions, entity state/versions, audit events, and operation traces.
+- `/v1/traces` reads real `operation_traces` rows and can be polled by the frontend Flight Recorder.
+- Added Retry x3 proof service and `POST /v1/actions/retry-demo`.
+- Retry proof fires three concurrent proposals with one idempotency key, then approves the surviving action exactly once.
+- Added `pnpm read:check` and `pnpm retry-proof:check`.
+- Verified Retry x3 yields one proposal and one execution.
+- Re-ran phase-aware backend checks after retry proof advanced entity state again.
+- Verified with `pnpm exec tsc --noEmit` and `pnpm lint`.
+- Marked Phase 5.1 through Phase 5.4 complete in `PLAN.md`.
+
+Decisions:
+
+- The live recorder refresh mechanism is a pollable `/v1/traces` endpoint; the TanStack Query one-second polling will be attached in the Phase 6 UI.
+- Retry proof approval happens inside the proof service so the demo can show one proposal and one execution without an extra manual click.
+
+Current state:
+
+- The backend spine is complete through propose, gate, approve, execute, rollback, compensation, traces, reads, and retry proof.
+- The live DSQL cluster now contains additional proof actions from verification scripts.
+
+How to verify:
+
+- Run `pnpm read:check`.
+- Run `pnpm retry-proof:check`.
+- Run `pnpm db:smoke && pnpm propose:race-check && pnpm rollback:check && pnpm read:check`.
+
+Next action:
+
+- Commit Phase 5, then create `DESIGN.md` before frontend implementation.

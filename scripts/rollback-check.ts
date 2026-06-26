@@ -43,18 +43,17 @@ async function main(): Promise<void> {
       throw new Error("Rollback did not restore and compensate");
     }
 
-    const current = await query<CurrentVersionRow>(
+    const restored = await query<CurrentVersionRow>(
       `SELECT ev.version_number,
         ev.state->>'refund_status' AS refund_status,
         ev.state->>'ticket_priority' AS ticket_priority,
         ev.state->>'customer_health' AS customer_health,
         (ev.state->>'csm_notified')::bool AS csm_notified
-       FROM business_entities be
-       JOIN entity_versions ev ON ev.id = be.current_version_id
-       WHERE be.id = $1`,
-      [DEMO_IDS.entity],
+       FROM entity_versions ev
+       WHERE ev.id = $1`,
+      [rollback.restored_version_id],
     );
-    const row = current.rows[0];
+    const row = restored.rows[0];
 
     if (
       row?.version_number !== 6 ||

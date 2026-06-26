@@ -125,10 +125,10 @@ Phase 4 Definition of Done: rollback restores internal state and spawns a compen
 
 Goal: Make DSQL correctness visible in the product.
 
-- [ ] 5.1 Implement read APIs for actions, active entity state, audit events, and `operation_traces`.
-- [ ] 5.2 Build Flight Recorder data source from real `operation_traces` rows with a real live refresh path, e.g. TanStack Query polling around every second.
-- [ ] 5.3 Implement Retry x3 endpoint or client flow that fires three concurrent propose calls with one idempotency key.
-- [ ] 5.4 Verify Retry x3 yields one proposal, one execution after approval, and zero double refunds.
+- [x] 5.1 Implement read APIs for actions, active entity state, audit events, and `operation_traces`.
+- [x] 5.2 Build Flight Recorder data source from real `operation_traces` rows with a real live refresh path, e.g. TanStack Query polling around every second.
+- [x] 5.3 Implement Retry x3 endpoint or client flow that fires three concurrent propose calls with one idempotency key.
+- [x] 5.4 Verify Retry x3 yields one proposal, one execution after approval, and zero double refunds.
 
 Phase 5 Definition of Done: Flight Recorder is live from DSQL, and the retry proof visibly dedupes.
 
