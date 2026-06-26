@@ -136,7 +136,7 @@ Phase 5 Definition of Done: Flight Recorder is live from DSQL, and the retry pro
 
 Goal: Build the four-panel control surface with the design bar from PRD Part 2.
 
-- [ ] 6.1 Create `DESIGN.md` before UI implementation.
+- [x] 6.1 Create `DESIGN.md` before UI implementation.
   - Include 5-7 named hex colors with roles.
   - Include display/body/mono type choices.
   - Include ASCII wireframes for the four panels.

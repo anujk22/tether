@@ -528,3 +528,35 @@ How to verify:
 Next action:
 
 - Commit Phase 5, then create `DESIGN.md` before frontend implementation.
+
+## 2026-06-26 - Phase 6.1 Design Pass
+
+Completed:
+
+- Used the `impeccable` design skill for the frontend phase.
+- Created `PRODUCT.md` with product register, users, purpose, personality, anti-references, principles, and accessibility requirements.
+- Created `DESIGN.md` before writing UI code.
+- Defined base palette with PRD-required hex values plus OKLCH implementation tokens.
+- Defined semantic state palette for proposed, gated, approval-required, approved, executed, rejected/denied, rolled-back, and compensated.
+- Defined typography, four-panel ASCII layout, component rules, motion rules, signature Ledger Rail, and anti-generic critique.
+- Added `.impeccable/live/config.json` for the Next App Router project; CSP detection returned no CSP.
+- Marked Phase 6.1 complete in `PLAN.md`.
+
+Decisions:
+
+- Visual direction is restrained light instrumentation, not cream editorial, black-neon control room, or newspaper layout.
+- Use Geist and Geist Mono deliberately, with mono as a visible ledger identity.
+
+Current state:
+
+- Frontend implementation is cleared to begin against `DESIGN.md`.
+
+How to verify:
+
+- Read `PRODUCT.md`.
+- Read `DESIGN.md`.
+- Inspect `.impeccable/live/config.json`.
+
+Next action:
+
+- Commit Phase 6.1, then build the four-panel control surface.
