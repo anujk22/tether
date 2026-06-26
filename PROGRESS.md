@@ -62,3 +62,33 @@ How to verify:
 Next action:
 
 - Wait for user confirmation to begin Phase 1.
+
+## 2026-06-26 - Plan Approved With Corrections
+
+Completed:
+
+- Read the approved-build adjustment file.
+- Applied required corrections to `PLAN.md` before implementation.
+
+Decisions:
+
+- Use `@aws-sdk/dsql-signer` plus `pg` as the primary DSQL connection path.
+- Generate IAM auth tokens through an async `password` function per new connection; do not generate a single pool-startup token.
+- Catch SQLSTATE `40001` for bounded OCC retries and SQLSTATE `23505` for idempotency races.
+- Keep execute and rollback mutations plus their trace/audit rows inside one transaction.
+- Seed a stable `refund_reversal` compensation action type in addition to `issue_refund`.
+- Make migrations and seed scripts re-runnable with fixed seed UUIDs.
+- Use polling for the Flight Recorder so the UI visibly refreshes from DSQL.
+
+Current state:
+
+- `PLAN.md` has been updated with the approved corrections.
+- App implementation has not started yet in this resumed session.
+
+How to verify:
+
+- Inspect `PLAN.md` sections for DSQL auth, idempotency, atomic transactions, compensation seed data, and live recorder polling.
+
+Next action:
+
+- Commit the plan/progress correction, then begin Phase 1.1 scaffolding.

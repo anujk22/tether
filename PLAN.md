@@ -7,7 +7,7 @@ This plan implements the PRD for Tether: a design-led control plane for AI agent
 - AWS region: `us-east-1`.
 - Aurora DSQL cluster is user-created; Codex owns schema, migrations, seed data, and app code.
 - DSQL connection: host from `.env.local`, user `admin`, database `postgres`, port `5432`, SSL enabled.
-- Auth: IAM token auth through AWS's official node connector packages; no hand-rolled long-lived database password.
+- Auth: IAM token auth through AWS's `DsqlSigner` plus `pg`; pass `password` as an async function so every new connection receives a fresh token.
 - AWS credentials come from the standard provider chain and are also stored locally in `.env.local` for this hackathon workspace.
 - Agent behavior is scripted and deterministic. No live model dependency is required.
 - Real internals: gate, versioning, rollback, compensation, idempotency, traces, audit, and DSQL writes.
@@ -29,6 +29,9 @@ This plan implements the PRD for Tether: a design-led control plane for AI agent
 - Do not mix DDL and DML in the same transaction.
 - Use `CREATE INDEX ASYNC` for indexes and verify index readiness before relying on them.
 - Keep mutations small and append-only wherever possible.
+- Distinguish retryable OCC conflicts from idempotency races: SQLSTATE `40001` retries; SQLSTATE `23505` for idempotency returns the existing proposal and does not retry blindly.
+- Put each business mutation and its trace/audit rows in the same transaction.
+- Treat Next.js route handlers as potentially cold serverless invocations; keep pools small and never depend on a token generated once at process startup.
 
 ## Phase 1 - Foundation
 
@@ -48,23 +51,23 @@ Goal: Create the Next.js foundation, DSQL connection layer, migrations, and seed
 
 - [ ] 1.3 Install database dependencies
   - Files: `package.json`, `pnpm-lock.yaml`.
-  - Tasks: Install `pg`, `@aws/aurora-dsql-nodejs-connector`, `@aws-sdk/credential-providers`, `@aws-sdk/dsql-signer`.
+  - Tasks: Install `pg`, `@aws-sdk/credential-providers`, and `@aws-sdk/dsql-signer`; verify any Aurora DSQL convenience connector before adopting it, but do not block on it.
   - Verify: dependency install completes and TypeScript can resolve database packages.
 
 - [ ] 1.4 Implement DSQL-safe connection and retry layer
   - Files: `src/lib/db/env.ts`, `src/lib/db/client.ts`, `src/lib/db/retry.ts`, `src/lib/db/trace.ts`.
-  - Tasks: Build a `pg` pool using the official Aurora DSQL connector/IAM token auth, load env safely, expose `query`, `transaction`, and `withRetry` helpers, catch SQLSTATE `40001` with bounded exponential backoff.
+  - Tasks: Build a small `pg` pool using `DsqlSigner.getDbConnectAdminAuthToken()` as `password: async () => ...`, load env safely, expose `query`, `transaction`, and `withRetry` helpers, catch SQLSTATE `40001` with bounded exponential backoff, and expose a typed way for callers to handle SQLSTATE `23505`.
   - Verify: a local script can open and close a database connection; retry helper has a focused test or script check.
 
 - [ ] 1.5 Add DSQL-safe migrations
   - Files: `src/lib/db/migrations.ts`, `scripts/migrate.ts`.
-  - Tasks: Create all PRD schema tables using `json` columns, UUID PK defaults, and no foreign keys; run each DDL statement in its own transaction; create required async indexes in their own transactions; verify async indexes before reporting success.
+  - Tasks: Create all PRD schema tables using `CREATE TABLE IF NOT EXISTS`, `json` columns, UUID PK defaults, and no foreign keys; run each DDL statement in its own transaction; create required indexes in their own transactions; prefer inline/synchronous uniqueness for `idempotency_key` if DSQL accepts it, otherwise use `CREATE UNIQUE INDEX ASYNC`; verify async index readiness before reporting success.
   - Verify: `pnpm db:migrate` creates the schema against DSQL without unsupported syntax.
 
 - [ ] 1.6 Seed demo data
   - Files: `src/lib/demo/seed.ts`, `scripts/seed.ts`.
-  - Tasks: Insert one org, three users, one agent, policy/rules, `issue_refund` action type, one customer business entity, and active `entity_versions` v4 state.
-  - Verify: `pnpm db:seed` is idempotent enough for local iteration and leaves exactly the expected demo entities.
+  - Tasks: Insert one org, three users, one agent, policy/rules, `issue_refund` action type, a `refund_reversal` compensation action type, one customer business entity, and active `entity_versions` v4 state using fixed hardcoded UUIDs.
+  - Verify: `pnpm db:seed` is fully re-runnable, does not duplicate seed data, and leaves exactly the expected demo entities.
 
 - [ ] 1.7 Add foundation verification scripts
   - Files: `scripts/db-smoke.ts`, `package.json`.
@@ -85,10 +88,11 @@ Goal: Implement scripted proposal creation and deterministic gating.
 - [ ] 2.1 Create shared domain types and constants for statuses, decisions, roles, and reversibility classes.
 - [ ] 2.2 Implement deterministic condition evaluation for `approval_rules` ordered by priority.
 - [ ] 2.3 Implement `POST /v1/actions/propose`.
-- [ ] 2.4 Ensure idempotency key dedupe returns existing proposal before mutation.
-- [ ] 2.5 Snapshot active prior state, insert proposal, gate it, and write audit/trace rows for every mutation.
-- [ ] 2.6 Add scripted `$1,250` `issue_refund` proposal fixture.
-- [ ] 2.7 Verify scripted proposal lands as `approval_required` with finance as required approver and real traces.
+- [ ] 2.4 Ensure sequential idempotency dedupe returns an existing proposal before mutation.
+- [ ] 2.5 Handle concurrent idempotency races by catching SQLSTATE `23505` from the unique idempotency constraint/index, fetching the existing proposal, and returning it without retrying or duplicating work.
+- [ ] 2.6 Snapshot active prior state, insert proposal, gate it, and write audit/trace rows for every mutation.
+- [ ] 2.7 Add scripted `$1,250` `issue_refund` proposal fixture.
+- [ ] 2.8 Verify scripted proposal lands as `approval_required` with finance as required approver and real traces.
 
 Phase 2 Definition of Done: the scripted proposal writes to DSQL, gates deterministically, and records trace/audit rows from real database state.
 
@@ -98,8 +102,8 @@ Goal: Human decision moves approved actions into versioned business state.
 
 - [ ] 3.1 Implement `POST /v1/actions/{id}/decision` for approve/reject.
 - [ ] 3.2 Implement idempotent internal execute path guarded by action status.
-- [ ] 3.3 Append `entity_versions` v5, deactivate the prior active version, and update `business_entities.current_version_id`.
-- [ ] 3.4 Write `approvals`, `executions`, `audit_events`, and `operation_traces`.
+- [ ] 3.3 Append `entity_versions` v5, deactivate the prior active version, update `business_entities.current_version_id`, and write `executions`, `audit_events`, and `operation_traces` inside one transaction wrapped in `withRetry`.
+- [ ] 3.4 Ensure approve/reject decision rows and all traces for their mutations are written atomically with the status changes they describe.
 - [ ] 3.5 Verify approving moves seeded state v4 to v5 in DSQL.
 
 Phase 3 Definition of Done: approving the proposal produces exactly one execution and one new active version.
@@ -110,9 +114,9 @@ Goal: Make rollback the moat: exact internal restore plus routed external compen
 
 - [ ] 4.1 Implement `POST /v1/actions/{id}/rollback`.
 - [ ] 4.2 For `REVERSIBLE_INTERNAL`, append a restoring version and rollback event.
-- [ ] 4.3 For `IRREVERSIBLE_EXTERNAL`, append v6 that restores internal state from prior v4 and create a compensation proposal from the template.
-- [ ] 4.4 Route the compensation proposal through the same propose/gate path.
-- [ ] 4.5 Write all rollback/compensation traces and audit rows.
+- [ ] 4.3 For `IRREVERSIBLE_EXTERNAL`, append v6 with state copied from v4 exactly: `refund_status:"none"`, `ticket_priority:"normal"`, `customer_health:"stable"`, `csm_notified:false`.
+- [ ] 4.4 Create a compensation proposal from `issue_refund.compensation_template` targeting seeded `refund_reversal`; route it through the same propose/gate path and prevent recursive compensation.
+- [ ] 4.5 Write rollback, compensation, trace, and audit rows in the same transaction as the state changes they describe.
 - [ ] 4.6 Verify rollback yields v6 = v4 internal state and a routed compensation action in DSQL.
 
 Phase 4 Definition of Done: rollback restores internal state and spawns a compensation proposal without any fake control-plane internals.
@@ -122,7 +126,7 @@ Phase 4 Definition of Done: rollback restores internal state and spawns a compen
 Goal: Make DSQL correctness visible in the product.
 
 - [ ] 5.1 Implement read APIs for actions, active entity state, audit events, and `operation_traces`.
-- [ ] 5.2 Build Flight Recorder data source from real `operation_traces` rows.
+- [ ] 5.2 Build Flight Recorder data source from real `operation_traces` rows with a real live refresh path, e.g. TanStack Query polling around every second.
 - [ ] 5.3 Implement Retry x3 endpoint or client flow that fires three concurrent propose calls with one idempotency key.
 - [ ] 5.4 Verify Retry x3 yields one proposal, one execution after approval, and zero double refunds.
 
@@ -152,7 +156,7 @@ Goal: Prepare hackathon submission artifacts.
 
 - [ ] 7.1 Deploy to Vercel after Team ID/project details are provided.
 - [ ] 7.2 Capture DSQL proof screenshot from AWS/Vercel context.
-- [ ] 7.3 Create architecture diagram showing agent -> Tether SDK/MCP -> gate -> approval -> connector -> enterprise system, with Aurora DSQL as ledger.
+- [ ] 7.3 Reuse the existing finished Mermaid architecture diagram if available; otherwise create one showing agent -> Tether SDK/MCP -> gate -> approval -> connector -> enterprise system, with Aurora DSQL as ledger.
 - [ ] 7.4 Write Devpost description using the PRD paragraph and implementation specifics.
 - [ ] 7.5 Record the sub-3-minute demo video with rollback as the peak and DSQL explicitly explained.
 - [ ] 7.6 Complete submission checklist for Track 2.
