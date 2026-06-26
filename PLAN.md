@@ -43,7 +43,7 @@ Goal: Create the Next.js foundation, DSQL connection layer, migrations, and seed
   - Libraries: Next.js, React, Tailwind CSS v4, ESLint.
   - Verify: `pnpm lint` succeeds on the scaffold.
 
-- [ ] 1.2 Add local environment handling
+- [x] 1.2 Add local environment handling
   - Files: `.env.local`, `.env.example`, `.gitignore`.
   - Tasks: Store DSQL host, region, database, user, port, SSL mode, and AWS credential names locally; ensure `.env.local` is ignored.
   - Libraries: Next.js env loading for app runtime; `@next/env` or equivalent for scripts if needed.

@@ -121,3 +121,32 @@ How to verify:
 Next action:
 
 - Commit Phase 1.1, then add local environment handling for DSQL and AWS credentials.
+
+## 2026-06-26 - Phase 1.2 Environment
+
+Completed:
+
+- Added `.env.example` with non-secret DSQL/AWS variable names and defaults.
+- Created ignored `.env.local` with the provided local AWS and DSQL settings.
+- Updated `.gitignore` so `.env.local` remains ignored while `.env.example` can be committed.
+- Verified required env vars load with Node without printing credential values.
+- Marked Phase 1.2 complete in `PLAN.md`.
+
+Decisions:
+
+- Keep all app/server database config behind non-public env vars.
+- Commit `.env.example`, not `.env.local`.
+
+Current state:
+
+- `.env.local` exists locally and is ignored.
+- `.env.example` and `.gitignore` are modified for commit.
+
+How to verify:
+
+- Run `git check-ignore -v .env.local`.
+- Run `node --env-file=.env.local -e 'console.log(Boolean(process.env.DSQL_HOST))'`.
+
+Next action:
+
+- Commit Phase 1.2, then install database dependencies.
