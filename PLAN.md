@@ -64,7 +64,7 @@ Goal: Create the Next.js foundation, DSQL connection layer, migrations, and seed
   - Tasks: Create all PRD schema tables using `CREATE TABLE IF NOT EXISTS`, `json` columns, UUID PK defaults, and no foreign keys; run each DDL statement in its own transaction; create required indexes in their own transactions; prefer inline/synchronous uniqueness for `idempotency_key` if DSQL accepts it, otherwise use `CREATE UNIQUE INDEX ASYNC`; verify async index readiness before reporting success.
   - Verify: `pnpm db:migrate` creates the schema against DSQL without unsupported syntax.
 
-- [ ] 1.6 Seed demo data
+- [x] 1.6 Seed demo data
   - Files: `src/lib/demo/seed.ts`, `scripts/seed.ts`.
   - Tasks: Insert one org, three users, one agent, policy/rules, `issue_refund` action type, a `refund_reversal` compensation action type, one customer business entity, and active `entity_versions` v4 state using fixed hardcoded UUIDs.
   - Verify: `pnpm db:seed` is fully re-runnable, does not duplicate seed data, and leaves exactly the expected demo entities.

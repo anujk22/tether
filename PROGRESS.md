@@ -245,3 +245,37 @@ How to verify:
 Next action:
 
 - Commit Phase 1.5, then add fixed-UUID seed data including `issue_refund` and `refund_reversal`.
+
+## 2026-06-26 - Phase 1.6 Seed Data
+
+Completed:
+
+- Added fixed seed UUIDs in `src/lib/demo/ids.ts`.
+- Added re-runnable seed logic in `src/lib/demo/seed.ts`.
+- Seeded one organization, three users, one agent, one company policy, two action types, five approval rules, one customer entity, and active entity version v4.
+- Seeded `issue_refund` as `IRREVERSIBLE_EXTERNAL` with a `refund_reversal` compensation template.
+- Seeded `refund_reversal` with an auto-approve rule and no compensation template to avoid recursive compensation.
+- Added `pnpm db:seed` and `pnpm db:seed-check`.
+- Ran `pnpm db:seed` twice successfully.
+- Verified seeded data with `pnpm db:seed-check`.
+- Verified with `pnpm exec tsc --noEmit` and `pnpm lint`.
+- Marked Phase 1.6 complete in `PLAN.md`.
+
+Decisions:
+
+- Seed uses `ON CONFLICT (id) DO UPDATE` with fixed UUIDs rather than generated IDs.
+- `refund_reversal` is a routed compensation action type but does not itself define another compensation template.
+
+Current state:
+
+- The live DSQL cluster contains the stable demo baseline.
+- The active customer state is v4 with `refund_status:"none"`.
+
+How to verify:
+
+- Run `pnpm db:seed`.
+- Run `pnpm db:seed-check`.
+
+Next action:
+
+- Commit Phase 1.6, then add the foundation smoke script.
