@@ -150,3 +150,30 @@ How to verify:
 Next action:
 
 - Commit Phase 1.2, then install database dependencies.
+
+## 2026-06-26 - Phase 1.3 Database Dependencies
+
+Completed:
+
+- Installed `pg`, `@aws-sdk/credential-providers`, and `@aws-sdk/dsql-signer`.
+- Added `tsx` and `@types/pg` for TypeScript database scripts.
+- Approved only the `esbuild` build script needed by `tsx`; left optional `sharp` and `unrs-resolver` scripts disabled.
+- Verified dependencies with `pnpm exec tsc --noEmit` and `pnpm lint`.
+- Marked Phase 1.3 complete in `PLAN.md`.
+
+Decisions:
+
+- Use the canonical manual `DsqlSigner` + `pg` path, not an unverified convenience connector.
+
+Current state:
+
+- Database packages are installed and repeatable via `pnpm install`.
+
+How to verify:
+
+- Run `pnpm exec tsc --noEmit`.
+- Run `pnpm lint`.
+
+Next action:
+
+- Commit Phase 1.3, then implement the DSQL-safe connection and retry layer.

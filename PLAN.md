@@ -49,7 +49,7 @@ Goal: Create the Next.js foundation, DSQL connection layer, migrations, and seed
   - Libraries: Next.js env loading for app runtime; `@next/env` or equivalent for scripts if needed.
   - Verify: scripts can load required env vars without printing secrets.
 
-- [ ] 1.3 Install database dependencies
+- [x] 1.3 Install database dependencies
   - Files: `package.json`, `pnpm-lock.yaml`.
   - Tasks: Install `pg`, `@aws-sdk/credential-providers`, and `@aws-sdk/dsql-signer`; verify any Aurora DSQL convenience connector before adopting it, but do not block on it.
   - Verify: dependency install completes and TypeScript can resolve database packages.
