@@ -14,6 +14,7 @@
     "db:smoke": "node --env-file-if-exists=.env.local --import tsx scripts/db-smoke.ts",
     "db:retry-check": "node --import tsx scripts/retry-check.ts",
     "gate:check": "node --env-file-if-exists=.env.local --import tsx scripts/gate-check.ts",
+    "decision:check": "node --env-file-if-exists=.env.local --import tsx scripts/decision-check.ts",
     "propose:check": "node --env-file-if-exists=.env.local --import tsx scripts/propose-check.ts",
     "propose:race-check": "node --env-file-if-exists=.env.local --import tsx scripts/propose-race-check.ts"
   },

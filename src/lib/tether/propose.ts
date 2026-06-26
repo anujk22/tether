@@ -12,6 +12,7 @@ import type {
   UserRole,
 } from "../domain/types";
 import { runGate } from "./gate";
+import { executeApprovedAction } from "./execute";
 import { asJsonArray, asJsonRecord } from "./json";
 
 export type ProposeActionInput = {
@@ -253,6 +254,29 @@ async function createProposal(
         policy_title: gate.policyTitle,
       },
     });
+
+    if (gate.decision === "auto_approve") {
+      const execution = await executeApprovedAction(client, {
+        id: actionId,
+        org_id: agent.org_id,
+        entity_id: input.entity_id,
+        action_type_key: input.action_type,
+        proposed_changes: input.proposed_changes,
+        prior_state: priorState,
+        status: "approved",
+        reversibility_class: actionType.reversibility_class,
+      });
+
+      return {
+        action_id: actionId,
+        status: execution.status,
+        gate_decision: gate.decision,
+        required_approver_role: gate.requiredApproverRole,
+        reversibility_class: actionType.reversibility_class,
+        prior_state: priorState,
+        deduped: false,
+      };
+    }
 
     return {
       action_id: actionId,

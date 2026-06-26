@@ -100,11 +100,11 @@ Phase 2 Definition of Done: the scripted proposal writes to DSQL, gates determin
 
 Goal: Human decision moves approved actions into versioned business state.
 
-- [ ] 3.1 Implement `POST /v1/actions/{id}/decision` for approve/reject.
-- [ ] 3.2 Implement idempotent internal execute path guarded by action status.
-- [ ] 3.3 Append `entity_versions` v5, deactivate the prior active version, update `business_entities.current_version_id`, and write `executions`, `audit_events`, and `operation_traces` inside one transaction wrapped in `withRetry`.
-- [ ] 3.4 Ensure approve/reject decision rows and all traces for their mutations are written atomically with the status changes they describe.
-- [ ] 3.5 Verify approving moves seeded state v4 to v5 in DSQL.
+- [x] 3.1 Implement `POST /v1/actions/{id}/decision` for approve/reject.
+- [x] 3.2 Implement idempotent internal execute path guarded by action status.
+- [x] 3.3 Append `entity_versions` v5, deactivate the prior active version, update `business_entities.current_version_id`, and write `executions`, `audit_events`, and `operation_traces` inside one transaction wrapped in `withRetry`.
+- [x] 3.4 Ensure approve/reject decision rows and all traces for their mutations are written atomically with the status changes they describe.
+- [x] 3.5 Verify approving moves seeded state v4 to v5 in DSQL.
 
 Phase 3 Definition of Done: approving the proposal produces exactly one execution and one new active version.
 

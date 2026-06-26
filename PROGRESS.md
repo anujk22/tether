@@ -424,3 +424,37 @@ How to verify:
 Next action:
 
 - Commit Phase 2, then begin Phase 3.1 decision endpoint and execution path.
+
+## 2026-06-26 - Phase 3 Approve And Execute
+
+Completed:
+
+- Added atomic execution logic in `src/lib/tether/execute.ts`.
+- Added approval/rejection service in `src/lib/tether/decision.ts`.
+- Added `POST /v1/actions/{id}/decision`.
+- Approval writes `approvals`, status updates, entity version changes, `business_entities.current_version_id`, `executions`, audit rows, and operation traces inside one `writeTransaction`.
+- Execute path is idempotent for already executed actions.
+- Proposal path now auto-executes actions gated as `auto_approve`, needed later for `refund_reversal`.
+- Added `pnpm decision:check`.
+- Verified approval moves the scripted refund state to active v5.
+- Re-ran `pnpm decision:check` to verify already-executed idempotency.
+- Verified with `pnpm propose:check`, `pnpm exec tsc --noEmit`, and `pnpm lint`.
+- Marked Phase 3.1 through Phase 3.5 complete in `PLAN.md`.
+
+Decisions:
+
+- `issue_refund` execution appends a new entity version.
+- `refund_reversal` execution records a simulated external execution row without mutating entity state; rollback will own the v6 internal restore.
+
+Current state:
+
+- The scripted refund action is executed.
+- The customer entity current version is v5 with `refund_status:"pending_refund_1250"`, critical priority, at-risk health, and CSM notified.
+
+How to verify:
+
+- Run `pnpm decision:check`.
+
+Next action:
+
+- Commit Phase 3, then implement rollback and compensation.
