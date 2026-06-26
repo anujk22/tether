@@ -85,7 +85,7 @@ Phase 1 Definition of Done: app boots, DSQL connection works, migrations and see
 
 Goal: Implement scripted proposal creation and deterministic gating.
 
-- [ ] 2.1 Create shared domain types and constants for statuses, decisions, roles, and reversibility classes.
+- [x] 2.1 Create shared domain types and constants for statuses, decisions, roles, and reversibility classes.
 - [ ] 2.2 Implement deterministic condition evaluation for `approval_rules` ordered by priority.
 - [ ] 2.3 Implement `POST /v1/actions/propose`.
 - [ ] 2.4 Ensure sequential idempotency dedupe returns an existing proposal before mutation.

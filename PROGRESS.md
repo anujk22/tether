@@ -334,3 +334,29 @@ How to verify:
 Next action:
 
 - Commit Phase 1.8 docs, then begin Phase 2.1 domain types and constants.
+
+## 2026-06-26 - Phase 2.1 Domain Types
+
+Completed:
+
+- Added shared action status, gate decision, user role, reversibility class, and action type constants in `src/lib/domain/types.ts`.
+- Added reusable `GateResult`, `EvidenceItem`, and `JsonRecord` types.
+- Verified with `pnpm exec tsc --noEmit` and `pnpm lint`.
+- Marked Phase 2.1 complete in `PLAN.md`.
+
+Decisions:
+
+- Keep the domain vocabulary scoped to the two seeded action type keys: `issue_refund` and `refund_reversal`.
+
+Current state:
+
+- Backend code can now share typed status/decision strings without duplicating literals.
+
+How to verify:
+
+- Run `pnpm exec tsc --noEmit`.
+- Run `pnpm lint`.
+
+Next action:
+
+- Commit Phase 2.1, then implement deterministic approval-rule evaluation.
