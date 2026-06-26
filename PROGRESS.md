@@ -212,3 +212,36 @@ How to verify:
 Next action:
 
 - Commit Phase 1.4, then implement DSQL-safe migrations.
+
+## 2026-06-26 - Phase 1.5 Migrations
+
+Completed:
+
+- Added DSQL-safe migration statements for all PRD schema tables.
+- Used `CREATE TABLE IF NOT EXISTS`, UUID PK defaults, `json` columns, and no foreign keys.
+- Added inline unique constraint for `action_proposals.idempotency_key` and async index fallback/validation for `ux_action_idem`.
+- Added async indexes for `entity_versions(entity_id)` and `operation_traces(action_id)`.
+- Ran every DDL statement in its own transaction.
+- Verified async index readiness through DSQL job waiting and `pg_index.indisvalid`.
+- Added `pnpm db:migrate`.
+- Ran `pnpm db:migrate` successfully twice to prove re-runnability.
+- Verified with `pnpm exec tsc --noEmit` and `pnpm lint`.
+- Marked Phase 1.5 complete in `PLAN.md`.
+
+Decisions:
+
+- DSQL exposes `sys.wait_for_job` as a procedure, so migration uses `CALL sys.wait_for_job(...)` instead of `SELECT sys.wait_for_job(...)`.
+- Keep index validation through PostgreSQL catalog rows after the async job returns.
+
+Current state:
+
+- The live DSQL cluster has all schema tables and required indexes.
+- Migrations are idempotent for resumed sessions.
+
+How to verify:
+
+- Run `pnpm db:migrate`; it should finish with `migrate:ok`.
+
+Next action:
+
+- Commit Phase 1.5, then add fixed-UUID seed data including `issue_refund` and `refund_reversal`.

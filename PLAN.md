@@ -59,7 +59,7 @@ Goal: Create the Next.js foundation, DSQL connection layer, migrations, and seed
   - Tasks: Build a small `pg` pool using `DsqlSigner.getDbConnectAdminAuthToken()` as `password: async () => ...`, load env safely, expose `query`, `transaction`, and `withRetry` helpers, catch SQLSTATE `40001` with bounded exponential backoff, and expose a typed way for callers to handle SQLSTATE `23505`.
   - Verify: a local script can open and close a database connection; retry helper has a focused test or script check.
 
-- [ ] 1.5 Add DSQL-safe migrations
+- [x] 1.5 Add DSQL-safe migrations
   - Files: `src/lib/db/migrations.ts`, `scripts/migrate.ts`.
   - Tasks: Create all PRD schema tables using `CREATE TABLE IF NOT EXISTS`, `json` columns, UUID PK defaults, and no foreign keys; run each DDL statement in its own transaction; create required indexes in their own transactions; prefer inline/synchronous uniqueness for `idempotency_key` if DSQL accepts it, otherwise use `CREATE UNIQUE INDEX ASYNC`; verify async index readiness before reporting success.
   - Verify: `pnpm db:migrate` creates the schema against DSQL without unsupported syntax.
