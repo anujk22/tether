@@ -74,7 +74,7 @@ Goal: Create the Next.js foundation, DSQL connection layer, migrations, and seed
   - Tasks: Add a smoke check that connects to DSQL, confirms seeded rows, performs a tiny trace/audit-safe test write if appropriate, and exercises retry wrapper behavior without forcing a real conflict.
   - Verify: `pnpm db:smoke` prints a concise success summary.
 
-- [ ] 1.8 Commit Phase 1 foundation
+- [x] 1.8 Commit Phase 1 foundation
   - Files: git history.
   - Tasks: Commit small units using messages mapped to plan tasks.
   - Verify: `git log --oneline` shows Phase 1 commits and `git status --short` is clean except intentional local secrets.

@@ -307,3 +307,30 @@ How to verify:
 Next action:
 
 - Commit Phase 1.7, then verify git history/status for Phase 1.8.
+
+## 2026-06-26 - Phase 1.8 Foundation Checkpoint
+
+Completed:
+
+- Verified Phase 1 commit history maps to plan tasks.
+- Verified working tree has no uncommitted tracked changes before this docs update.
+- Verified ignored local-only files are `.env.local`, `node_modules`, `next-env.d.ts`, and `tsconfig.tsbuildinfo`.
+- Re-ran live DSQL checks: `pnpm db:connect`, `pnpm db:migrate`, `pnpm db:seed-check`, and `pnpm db:smoke`.
+- Marked Phase 1.8 complete in `PLAN.md`.
+
+Decisions:
+
+- Leave `.env.local` and generated build/cache files ignored.
+
+Current state:
+
+- Phase 1 is complete: app scaffold, DSQL connection, migrations, fixed seed data, and smoke verification are all implemented.
+
+How to verify:
+
+- Run `git log --oneline --decorate -12`.
+- Run `pnpm db:connect && pnpm db:migrate && pnpm db:seed-check && pnpm db:smoke`.
+
+Next action:
+
+- Commit Phase 1.8 docs, then begin Phase 2.1 domain types and constants.
