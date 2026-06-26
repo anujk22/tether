@@ -54,7 +54,7 @@ Goal: Create the Next.js foundation, DSQL connection layer, migrations, and seed
   - Tasks: Install `pg`, `@aws-sdk/credential-providers`, and `@aws-sdk/dsql-signer`; verify any Aurora DSQL convenience connector before adopting it, but do not block on it.
   - Verify: dependency install completes and TypeScript can resolve database packages.
 
-- [ ] 1.4 Implement DSQL-safe connection and retry layer
+- [x] 1.4 Implement DSQL-safe connection and retry layer
   - Files: `src/lib/db/env.ts`, `src/lib/db/client.ts`, `src/lib/db/retry.ts`, `src/lib/db/trace.ts`.
   - Tasks: Build a small `pg` pool using `DsqlSigner.getDbConnectAdminAuthToken()` as `password: async () => ...`, load env safely, expose `query`, `transaction`, and `withRetry` helpers, catch SQLSTATE `40001` with bounded exponential backoff, and expose a typed way for callers to handle SQLSTATE `23505`.
   - Verify: a local script can open and close a database connection; retry helper has a focused test or script check.

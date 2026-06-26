@@ -177,3 +177,38 @@ How to verify:
 Next action:
 
 - Commit Phase 1.3, then implement the DSQL-safe connection and retry layer.
+
+## 2026-06-26 - Phase 1.4 DSQL Connection And Retry
+
+Completed:
+
+- Implemented env validation in `src/lib/db/env.ts`.
+- Implemented the DSQL `pg` pool in `src/lib/db/client.ts` using `DsqlSigner.getDbConnectAdminAuthToken()` as an async `password` function.
+- Added `query`, `transaction`, `writeTransaction`, and pool shutdown helpers.
+- Implemented `withRetry` for SQLSTATE `40001` and explicit SQLSTATE helpers for `23505`.
+- Added trace/audit insert helpers for later business mutations.
+- Added `pnpm db:retry-check` and verified retry behavior locally.
+- Added `pnpm db:connect` and verified a live DSQL `SELECT 1`.
+- Verified with `pnpm exec tsc --noEmit` and `pnpm lint`.
+- Marked Phase 1.4 complete in `PLAN.md`.
+
+Decisions:
+
+- Use `node --env-file-if-exists=.env.local --import tsx` for local database scripts so Vercel-style env injection still works elsewhere.
+- Keep the pool small with `max` defaulting to 3 for serverless-friendly behavior.
+
+Current state:
+
+- The app can connect to the provided Aurora DSQL cluster.
+- Retry logic distinguishes `40001` retries from `23505` duplicate-key handling.
+
+How to verify:
+
+- Run `pnpm db:retry-check`.
+- Run `pnpm db:connect`.
+- Run `pnpm exec tsc --noEmit`.
+- Run `pnpm lint`.
+
+Next action:
+
+- Commit Phase 1.4, then implement DSQL-safe migrations.
