@@ -596,3 +596,34 @@ How to verify:
 Next action:
 
 - Commit Phase 6, then begin Phase 7 shipping artifacts. Deployment still needs Vercel project/team details from the user.
+
+## 2026-06-26 - Phase 7 Shipping Artifacts
+
+Completed:
+
+- Created `docs/ARCHITECTURE.md` with a Mermaid architecture diagram and DSQL design notes.
+- Created `docs/DEVPOST.md` with Devpost copy and implementation details.
+- Created `docs/DEMO_SCRIPT.md` with a sub-3-minute recording outline.
+- Created `docs/SUBMISSION_CHECKLIST.md` with completed and remaining submission items.
+- Marked Phase 7.3 and Phase 7.4 complete in `PLAN.md`.
+
+Decisions:
+
+- No existing architecture diagram was present in the workspace, so a new Mermaid version was created.
+- Deployment, DSQL console screenshot, video recording/upload, and final submission remain unchecked because they need Vercel/AWS console/user-owned external actions.
+
+Current state:
+
+- The app is ready for local demo at `http://localhost:3000`.
+- Phase 7 artifacts are prepared except deployment proof and video/submission.
+
+How to verify:
+
+- Read `docs/ARCHITECTURE.md`.
+- Read `docs/DEVPOST.md`.
+- Read `docs/DEMO_SCRIPT.md`.
+- Read `docs/SUBMISSION_CHECKLIST.md`.
+
+Next action:
+
+- Commit Phase 7 artifacts, then pause on external deployment/submission blockers unless Vercel Team ID and deployment target are provided.

@@ -156,8 +156,8 @@ Goal: Prepare hackathon submission artifacts.
 
 - [ ] 7.1 Deploy to Vercel after Team ID/project details are provided.
 - [ ] 7.2 Capture DSQL proof screenshot from AWS/Vercel context.
-- [ ] 7.3 Reuse the existing finished Mermaid architecture diagram if available; otherwise create one showing agent -> Tether SDK/MCP -> gate -> approval -> connector -> enterprise system, with Aurora DSQL as ledger.
-- [ ] 7.4 Write Devpost description using the PRD paragraph and implementation specifics.
+- [x] 7.3 Reuse the existing finished Mermaid architecture diagram if available; otherwise create one showing agent -> Tether SDK/MCP -> gate -> approval -> connector -> enterprise system, with Aurora DSQL as ledger.
+- [x] 7.4 Write Devpost description using the PRD paragraph and implementation specifics.
 - [ ] 7.5 Record the sub-3-minute demo video with rollback as the peak and DSQL explicitly explained.
 - [ ] 7.6 Complete submission checklist for Track 2.
 
