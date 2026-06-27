@@ -1,15 +1,18 @@
 "use client";
 
-import { useState } from "react";
+import type { CSSProperties } from "react";
+import { useMemo, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { motion, useReducedMotion } from "motion/react";
+import { AnimatePresence, motion, useReducedMotion } from "motion/react";
 import {
   AlertTriangle,
+  Check,
   CheckCircle2,
   CircleDollarSign,
   Clock3,
   Database,
   GitMerge,
+  RefreshCcw,
   RotateCcw,
   ShieldCheck,
   Split,
@@ -20,6 +23,15 @@ import {
 import { scriptedRefundProposal } from "@/lib/demo/scripted-proposal";
 
 type JsonRecord = Record<string, unknown>;
+type StateToken =
+  | "proposed"
+  | "gated"
+  | "approval"
+  | "approved"
+  | "executed"
+  | "rejected"
+  | "rolledback"
+  | "compensated";
 
 type ActionSummary = {
   id: string;
@@ -80,6 +92,11 @@ type RetryProof = {
   status: string;
 };
 
+type MutationError = {
+  source: string;
+  message: string;
+};
+
 const lifecycle = [
   "proposed",
   "gated",
@@ -89,6 +106,18 @@ const lifecycle = [
   "rolled_back",
   "compensated",
 ] as const;
+
+const STATUS_TO_STATE: Record<string, StateToken> = {
+  proposed: "proposed",
+  gated: "gated",
+  approval_required: "approval",
+  approved: "approved",
+  executed: "executed",
+  rejected: "rejected",
+  denied: "rejected",
+  rolled_back: "rolledback",
+  compensated: "compensated",
+};
 
 const stateLabels: Record<string, string> = {
   proposed: "Proposed",
@@ -113,6 +142,23 @@ const stateIcon: Record<string, typeof Clock3> = {
   rolled_back: Undo2,
   compensated: GitMerge,
 };
+
+function stateStyle(status: string, treatment: "soft" | "token" = "soft"): CSSProperties {
+  const token = STATUS_TO_STATE[status] ?? "proposed";
+  const state = `var(--state-${token})`;
+  const base = {
+    "--state": state,
+  } as CSSProperties;
+
+  if (treatment === "token") return base;
+
+  return {
+    ...base,
+    backgroundColor: `color-mix(in srgb, ${state} 14%, var(--bg-elevated))`,
+    borderColor: `color-mix(in srgb, ${state} 40%, transparent)`,
+    color: state,
+  };
+}
 
 async function fetchJson<T>(url: string, init?: RequestInit): Promise<T> {
   const response = await fetch(url, init);
@@ -142,17 +188,23 @@ function money(value: unknown): string {
 function formatValue(value: unknown): string {
   if (typeof value === "boolean") return value ? "true" : "false";
   if (typeof value === "number") return String(value);
-  if (typeof value === "string") return value.replaceAll("_", " ");
+  if (typeof value === "string") return value;
   if (value == null) return "none";
   return JSON.stringify(value);
 }
 
+function displayValue(value: unknown): string {
+  return formatValue(value).replaceAll("_", " ");
+}
+
 function formatTime(value: string): string {
-  return new Intl.DateTimeFormat("en-US", {
-    hour: "2-digit",
-    minute: "2-digit",
-    second: "2-digit",
-  }).format(new Date(value));
+  const date = new Date(value);
+  const h = String(date.getHours()).padStart(2, "0");
+  const m = String(date.getMinutes()).padStart(2, "0");
+  const s = String(date.getSeconds()).padStart(2, "0");
+  const ms = String(date.getMilliseconds()).padStart(3, "0");
+
+  return `${h}:${m}:${s}.${ms}`;
 }
 
 function evidenceItems(action: ActionSummary): Array<{
@@ -173,30 +225,59 @@ function evidenceItems(action: ActionSummary): Array<{
     .slice(0, 3);
 }
 
+function valuesEqual(left: unknown, right: unknown): boolean {
+  if (Object.is(left, right)) return true;
+  if (typeof left === "object" || typeof right === "object") {
+    return JSON.stringify(left) === JSON.stringify(right);
+  }
+  return false;
+}
+
 function diffRows(action: ActionSummary) {
   const keys = [
     "refund_status",
     "ticket_priority",
     "customer_health",
     "csm_notified",
-    "refund_amount",
   ];
 
   return keys
     .filter((key) => key in action.prior_state || key in action.proposed_changes)
-    .map((key) => ({
-      key,
-      before: action.prior_state[key],
-      after: action.proposed_changes[key] ?? action.prior_state[key],
-      changed: action.proposed_changes[key] !== undefined,
-    }));
+    .map((key) => {
+      const before = action.prior_state[key];
+      const after =
+        key in action.proposed_changes ? action.proposed_changes[key] : before;
+
+      return {
+        key,
+        before,
+        after,
+        changed: !valuesEqual(before, after),
+      };
+    });
+}
+
+function statusIndex(status: string): number {
+  if (status === "approval_required") return 2;
+  const index = lifecycle.findIndex((item) => item === status);
+  return index === -1 ? 0 : index;
+}
+
+function traceState(trace: TraceRow): string {
+  if (trace.table_name === "approvals") return "approved";
+  if (trace.table_name === "executions") return "executed";
+  if (trace.table_name === "rollback_events") return "rolled_back";
+  if (trace.table_name === "compensation_actions") return "compensated";
+  if (trace.summary.includes("approval_required")) return "approval_required";
+  if (trace.table_name === "action_proposals") return "proposed";
+  return "gated";
 }
 
 function StatusPill({ status }: { status: string }) {
   const Icon = stateIcon[status] ?? Clock3;
 
   return (
-    <span className="status-pill" data-state={status}>
+    <span className="status-pill" style={stateStyle(status)}>
       <Icon aria-hidden="true" size={14} />
       {stateLabels[status] ?? status}
     </span>
@@ -228,21 +309,26 @@ function AgentIntake({
   selectedId,
   onSelect,
   onPropose,
+  onReset,
   proposing,
+  resetting,
 }: {
   actions: ActionSummary[];
   selectedId: string | null;
   onSelect: (id: string) => void;
   onPropose: () => void;
+  onReset: () => void;
   proposing: boolean;
+  resetting: boolean;
 }) {
   return (
     <section className="console-panel intake-panel" aria-labelledby="agent-intake">
       <PanelTitle icon={Split} title="Agent Intake" aside={`${actions.length} actions`} />
-      <div className="action-list" role="listbox" aria-labelledby="agent-intake">
+      <div className="action-list" aria-labelledby="agent-intake">
         {actions.length ? (
           actions.map((action) => (
             <button
+              aria-pressed={selectedId === action.id}
               className="action-card"
               data-selected={selectedId === action.id}
               key={action.id}
@@ -254,8 +340,10 @@ function AgentIntake({
                 <StatusPill status={action.status} />
               </span>
               <span className="action-card-main">
-                <CircleDollarSign aria-hidden="true" size={16} />
-                <strong>{money(action.proposed_changes.refund_amount)}</strong>
+                <strong>
+                  <span>$</span>
+                  {money(action.proposed_changes.refund_amount).replace("$", "")}
+                </strong>
                 <span>{action.action_type_key.replaceAll("_", " ")}</span>
               </span>
               <span className="action-card-meta">
@@ -265,18 +353,30 @@ function AgentIntake({
             </button>
           ))
         ) : (
-          <div className="empty-state">No proposed actions</div>
+          <div className="empty-state">Queue clear — propose an action to begin.</div>
         )}
       </div>
-      <button
-        className="primary-control"
-        disabled={proposing}
-        onClick={onPropose}
-        type="button"
-      >
-        <CircleDollarSign aria-hidden="true" size={16} />
-        {proposing ? "Proposing" : "Propose refund"}
-      </button>
+      <div className="intake-controls">
+        <button
+          className="primary-control"
+          disabled={proposing || resetting}
+          onClick={onPropose}
+          style={stateStyle("executed", "token")}
+          type="button"
+        >
+          <CircleDollarSign aria-hidden="true" size={16} />
+          {proposing ? "Proposing refund" : "Propose refund"}
+        </button>
+        <button
+          className="secondary-control"
+          disabled={resetting}
+          onClick={onReset}
+          type="button"
+        >
+          <RefreshCcw aria-hidden="true" size={16} />
+          {resetting ? "Resetting demo" : "Reset demo"}
+        </button>
+      </div>
     </section>
   );
 }
@@ -291,17 +391,17 @@ function PolicyGate({
   versions: EntityVersion[];
 }) {
   const reducedMotion = useReducedMotion();
-  const currentIndex = action
-    ? Math.max(
-        0,
-        lifecycle.findIndex((status) => status === action.status),
-      )
-    : 0;
+  const currentIndex = statusIndex(action?.status ?? "proposed");
   const rows = action ? diffRows(action) : [];
   const activeVersion = versions.find((version) => version.is_active);
+  const isRollback = action?.status === "rolled_back" || action?.status === "compensated";
 
   return (
-    <section className="console-panel gate-panel" aria-labelledby="policy-gate">
+    <section
+      className="console-panel gate-panel"
+      aria-labelledby="policy-gate"
+      data-rollback={isRollback}
+    >
       <PanelTitle
         icon={ShieldCheck}
         title="Policy Gate"
@@ -309,61 +409,90 @@ function PolicyGate({
       />
       <div className="ledger-rail" aria-label="Action state machine">
         {lifecycle.map((status, index) => {
-          const active = index <= currentIndex;
+          const phase =
+            index < currentIndex ? "complete" : index === currentIndex ? "active" : "pending";
           const Icon = stateIcon[status] ?? Clock3;
 
           return (
-            <div className="rail-step" data-active={active} key={status}>
+            <div
+              className="rail-step"
+              data-phase={phase}
+              key={status}
+              style={stateStyle(status, "token")}
+            >
               <motion.span
                 animate={
-                  reducedMotion
+                  reducedMotion || phase !== "active"
                     ? undefined
                     : {
-                        scale: active && index === currentIndex ? [1, 1.08, 1] : 1,
+                        scale: [1, status === "approval_required" ? 1.12 : 1.04, 1],
                       }
                 }
-                transition={{ duration: 1.2, repeat: active ? Infinity : 0 }}
+                transition={{
+                  duration: status === "approval_required" ? 0.28 : 2,
+                  repeat: status === "approval_required" ? 0 : Infinity,
+                  ease: "easeInOut",
+                }}
                 className="rail-node"
-                data-state={status}
               >
-                <Icon aria-hidden="true" size={15} />
+                {phase === "complete" ? (
+                  <Check aria-hidden="true" size={15} />
+                ) : (
+                  <Icon aria-hidden="true" size={15} />
+                )}
               </motion.span>
               <span>{stateLabels[status]}</span>
+              {index < lifecycle.length - 1 ? (
+                <span className="rail-connector" aria-hidden="true" />
+              ) : null}
             </div>
           );
         })}
       </div>
       <div className="policy-strip">
-        <div>
+        <motion.div
+          animate={
+            !reducedMotion && action?.status === "approval_required"
+              ? { borderColor: ["var(--state-approval)", "var(--border-subtle)"] }
+              : undefined
+          }
+          transition={{ duration: 0.7 }}
+        >
           <span>Matched policy</span>
           <strong>{String(action?.gate.policy_title ?? "Refund authority")}</strong>
-        </div>
+        </motion.div>
         <div>
           <span>Required role</span>
           <strong>
-            {String(action?.gate.required_approver_role ?? "none").replaceAll(
-              "_",
-              " ",
-            )}
+            {String(action?.gate.required_approver_role ?? "none").replaceAll("_", " ")}
           </strong>
         </div>
-        <div>
+        <div className="version-card">
           <span>Active version</span>
-          <strong>v{activeVersion?.version_number ?? entity?.version_number ?? "-"}</strong>
+          <strong>
+            v{activeVersion?.version_number ?? entity?.version_number ?? "-"}
+            {isRollback ? <em> restoring v4</em> : null}
+          </strong>
         </div>
       </div>
       <div className="diff-table" aria-label="Before and after state diff">
         {action ? (
           rows.map((row) => (
-            <div className="diff-row" data-changed={row.changed} key={row.key}>
+            <motion.div
+              className="diff-row"
+              data-changed={row.changed}
+              key={row.key}
+              layout
+              style={stateStyle(action.status, "token")}
+            >
               <code>{row.key}</code>
-              <span>{formatValue(row.before)}</span>
+              <span>{displayValue(row.before)}</span>
               <span aria-hidden="true">→</span>
-              <strong>{formatValue(row.after)}</strong>
-            </div>
+              <strong>{displayValue(row.after)}</strong>
+            </motion.div>
           ))
         ) : (
-          <div className="empty-state">No action selected</div>
+          <div className="empty-state">No action selected.</div>
         )}
       </div>
     </section>
@@ -411,7 +540,7 @@ function DecisionPanel({
               </div>
             ))}
           </div>
-          <div className="reversibility">
+          <div className="reversibility" style={stateStyle("compensated")}>
             <span>Reversibility</span>
             <strong>
               {action.reversibility_class === "IRREVERSIBLE_EXTERNAL"
@@ -424,24 +553,26 @@ function DecisionPanel({
               className="primary-control"
               disabled={!canApprove || approving}
               onClick={onApprove}
+              style={stateStyle("approved", "token")}
               type="button"
             >
               <CheckCircle2 aria-hidden="true" size={16} />
-              {approving ? "Approving" : "Approve refund"}
+              {approving ? "Approving refund" : "Approve refund"}
             </button>
             <button
-              className="secondary-control"
+              className="primary-control"
               disabled={!canRollback || rollingBack}
               onClick={onRollback}
+              style={stateStyle("rolled_back", "token")}
               type="button"
             >
               <RotateCcw aria-hidden="true" size={16} />
-              {rollingBack ? "Rolling back" : "Rollback action"}
+              {rollingBack ? "Rolling back action" : "Rollback action"}
             </button>
           </div>
         </>
       ) : (
-        <div className="empty-state">Select an action</div>
+        <div className="empty-state">Select an action.</div>
       )}
       <div className="retry-proof">
         <button
@@ -451,9 +582,9 @@ function DecisionPanel({
           type="button"
         >
           <GitMerge aria-hidden="true" size={16} />
-          {retrying ? "Merging attempts" : "Simulate retry x3"}
+          {retrying ? "Merging attempts" : "Simulate retry ×3"}
         </button>
-        <div className="retry-attempts" aria-label="Retry proof attempts">
+        <div className="retry-attempts" data-merged={Boolean(retryProof)}>
           {(retryProof?.attempts ?? [1, 2, 3].map((attempt) => ({ attempt }))).map(
             (attempt) => (
               <motion.span
@@ -466,7 +597,11 @@ function DecisionPanel({
               </motion.span>
             ),
           )}
-          <code>{retryProof ? shortId(retryProof.action_id) : "one survives"}</code>
+          <code>
+            {retryProof
+              ? `${retryProof.proposal_count} proposal · ${retryProof.execution_count} execution · 0 double refunds`
+              : "one proposal survives"}
+          </code>
         </div>
       </div>
     </section>
@@ -474,29 +609,47 @@ function DecisionPanel({
 }
 
 function FlightRecorder({ traces }: { traces: TraceRow[] }) {
+  const newest = useMemo(
+    () =>
+      [...traces]
+        .sort(
+          (left, right) =>
+            new Date(right.created_at).getTime() - new Date(left.created_at).getTime(),
+        )
+        .slice(0, 30),
+    [traces],
+  );
+
   return (
     <section className="console-panel recorder-panel" aria-labelledby="flight-recorder">
-      <PanelTitle icon={Database} title="DSQL Flight Recorder" aside="operation_traces" />
+      <div className="recorder-title">
+        <PanelTitle icon={Database} title="DSQL Flight Recorder" aside="operation_traces" />
+        <span className="rec-light">REC</span>
+      </div>
       <div className="trace-stream" aria-live="polite">
-        {traces.length ? (
-          traces.slice(-32).map((trace) => (
-            <motion.div
-              className="trace-row"
-              initial={{ opacity: 0, y: 6 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.18 }}
-              key={trace.id}
-            >
-              <time>{formatTime(trace.created_at)}</time>
-              <span>{trace.operation}</span>
-              <code>{trace.table_name}</code>
-              <p>{trace.summary}</p>
-              <code>{shortId(trace.action_id)}</code>
-            </motion.div>
-          ))
-        ) : (
-          <div className="empty-state">No trace rows</div>
-        )}
+        <AnimatePresence initial={false}>
+          {newest.length ? (
+            newest.map((trace) => (
+              <motion.div
+                className="trace-row"
+                initial={{ opacity: 0, y: -8 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0 }}
+                transition={{ duration: 0.18 }}
+                key={trace.id}
+                style={stateStyle(traceState(trace), "token")}
+              >
+                <time>{formatTime(trace.created_at)}</time>
+                <span>{trace.operation}</span>
+                <code>{trace.table_name}</code>
+                <p>{trace.summary}</p>
+                <code>{shortId(trace.action_id)}</code>
+              </motion.div>
+            ))
+          ) : (
+            <div className="empty-state">No trace rows yet.</div>
+          )}
+        </AnimatePresence>
       </div>
     </section>
   );
@@ -520,6 +673,7 @@ export function TetherConsole() {
   const queryClient = useQueryClient();
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [retryProof, setRetryProof] = useState<RetryProof | null>(null);
+  const [mutationError, setMutationError] = useState<MutationError | null>(null);
   const dashboard = useQuery({
     queryKey: ["dashboard"],
     queryFn: () => fetchJson<DashboardData>("/v1/dashboard"),
@@ -536,6 +690,10 @@ export function TetherConsole() {
       queryKey: ["dashboard"],
     });
 
+  const onError = (source: string) => (error: Error) => {
+    setMutationError({ source, message: error.message });
+  };
+
   const propose = useMutation({
     mutationFn: () =>
       fetchJson<{ action_id: string }>("/v1/actions/propose", {
@@ -544,9 +702,24 @@ export function TetherConsole() {
         body: JSON.stringify(scriptedRefundProposal(`ui-refund-${Date.now()}`)),
       }),
     onSuccess: (result) => {
+      setMutationError(null);
       setSelectedId(result.action_id);
       void invalidate();
     },
+    onError: onError("Propose refund"),
+  });
+  const reset = useMutation({
+    mutationFn: () =>
+      fetchJson<{ action_id: string }>("/v1/demo/reset", {
+        method: "POST",
+      }),
+    onSuccess: (result) => {
+      setMutationError(null);
+      setRetryProof(null);
+      setSelectedId(result.action_id);
+      void invalidate();
+    },
+    onError: onError("Reset demo"),
   });
   const approve = useMutation({
     mutationFn: (actionId: string) =>
@@ -558,7 +731,11 @@ export function TetherConsole() {
           note: "Finance approved from Tether console.",
         }),
       }),
-    onSuccess: () => void invalidate(),
+    onSuccess: () => {
+      setMutationError(null);
+      void invalidate();
+    },
+    onError: onError("Approve refund"),
   });
   const rollback = useMutation({
     mutationFn: (actionId: string) =>
@@ -570,7 +747,11 @@ export function TetherConsole() {
           reason: "Console rollback requested by finance.",
         }),
       }),
-    onSuccess: () => void invalidate(),
+    onSuccess: () => {
+      setMutationError(null);
+      void invalidate();
+    },
+    onError: onError("Rollback action"),
   });
   const retry = useMutation({
     mutationFn: () =>
@@ -578,10 +759,12 @@ export function TetherConsole() {
         method: "POST",
       }),
     onSuccess: (result) => {
+      setMutationError(null);
       setRetryProof(result);
       setSelectedId(result.action_id);
       void invalidate();
     },
+    onError: onError("Simulate retry ×3"),
   });
 
   if (dashboard.isLoading) return <Skeleton />;
@@ -590,9 +773,12 @@ export function TetherConsole() {
     return (
       <div className="console-shell">
         <div className="error-state">
-          {dashboard.error instanceof Error
-            ? dashboard.error.message
-            : "Dashboard failed to load"}
+          <strong>Dashboard failed to load.</strong>
+          <span>
+            {dashboard.error instanceof Error
+              ? dashboard.error.message
+              : "Check the local server and DSQL credentials."}
+          </span>
         </div>
       </div>
     );
@@ -602,8 +788,8 @@ export function TetherConsole() {
     <main className="console-shell">
       <header className="console-header">
         <div>
-          <span>Tether</span>
-          <h1>The control plane for AI agents that act</h1>
+          <h1>Tether</h1>
+          <span>The control plane for AI agents that act</span>
         </div>
         <div className="header-metrics" aria-label="Current ledger state">
           <span>
@@ -617,13 +803,21 @@ export function TetherConsole() {
           </span>
         </div>
       </header>
+      {mutationError ? (
+        <div className="toast" role="status">
+          <strong>{mutationError.source} failed.</strong>
+          <span>{mutationError.message}</span>
+        </div>
+      ) : null}
       <div className="console-grid">
         <AgentIntake
           actions={actions}
           selectedId={selectedAction?.id ?? null}
           onSelect={setSelectedId}
           onPropose={() => propose.mutate()}
+          onReset={() => reset.mutate()}
           proposing={propose.isPending}
+          resetting={reset.isPending}
         />
         <PolicyGate
           action={selectedAction}

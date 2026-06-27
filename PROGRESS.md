@@ -627,3 +627,32 @@ How to verify:
 Next action:
 
 - Commit Phase 7 artifacts, then pause on external deployment/submission blockers unless Vercel Team ID and deployment target are provided.
+
+## 2026-06-27 - Authoritative Design Rebuild
+
+### Inputs
+
+- Read the replacement authoritative `DESIGN.md` pasted by the user.
+- Treat the backend as complete and keep this pass focused on the two data fixes plus visual/UI rebuild.
+
+### Build Fixes
+
+- Added `resetDemoData()` to delete generated demo rows, restore seeded entity v4, and recreate the canonical scripted proposal through the real propose/gate path.
+- Added `pnpm demo:reset` and `POST /v1/demo/reset`.
+- Ran `pnpm demo:reset`; result was one `approval_required` canonical `issue_refund` action.
+- Verified dashboard reset state directly: active entity `v4`, one action, two real trace rows, prior state is seeded baseline, proposed state contains the refund deltas.
+
+### Next
+
+- Fix UI diff change detection to compare immutable `prior_state` against `proposed_changes`.
+- Rebuild the four panels against the dark instrument token system from the new spec.
+
+### Visual Rebuild
+
+- Replaced the previous light/pastel design spec with the authoritative dark instrument `DESIGN.md`.
+- Updated diff rows to compare immutable proposal snapshots: `prior_state[k]` versus `proposed_changes[k]`.
+- Rebuilt the console with the specified graphite token system, Geist/Geist Mono usage, fixed desktop grid, semantic status map, and `stateStyle()` helper.
+- Reworked the Policy Gate rail so only one lifecycle node is active and pending/completed states are visually distinct.
+- Promoted the DSQL Flight Recorder to a full 180px desktop tape with mono trace rows, REC indicator, newest-first ordering, and row tick-in motion.
+- Added the in-app `Reset demo` control and left the demo in the canonical `approval_required` start state after screenshot refresh.
+- Browser QA now enforces no console warnings, no text overflow, four panels on desktop/mobile, trace rows present, and desktop Recorder height at least 180px.

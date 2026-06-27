@@ -65,7 +65,7 @@ async function runViewport(browser, name, viewport) {
   await page.waitForSelector(".console-grid", { timeout: 15_000 });
 
   if (name === "desktop") {
-    await page.getByRole("button", { name: /Simulate retry x3/i }).click();
+    await page.getByRole("button", { name: /Simulate retry (x|×)3/i }).click();
     await page.waitForFunction(
       () => document.body.innerText.includes("proposal_count=1") === false,
       { timeout: 1_000 },
@@ -111,12 +111,26 @@ try {
     throw new Error(`Console errors: ${JSON.stringify(allConsole)}`);
   }
 
+  if (allOverflow.length) {
+    throw new Error(`Text overflow: ${JSON.stringify(allOverflow)}`);
+  }
+
   if (!desktop.metrics.hasRecorderRows || !mobile.metrics.hasRecorderRows) {
     throw new Error("Flight Recorder rendered without trace rows");
   }
 
   if (desktop.metrics.panels.length < 4 || mobile.metrics.panels.length < 4) {
     throw new Error("Expected four console panels in each viewport");
+  }
+
+  const desktopRecorder = desktop.metrics.panels.find((panel) =>
+    panel.className.includes("recorder-panel"),
+  );
+
+  if (!desktopRecorder || desktopRecorder.height < 180) {
+    throw new Error(
+      `Desktop Flight Recorder height below 180px: ${desktopRecorder?.height}`,
+    );
   }
 
   console.log(

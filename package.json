@@ -20,6 +20,7 @@
     "rollback:check": "node --env-file-if-exists=.env.local --import tsx scripts/rollback-check.ts",
     "read:check": "node --env-file-if-exists=.env.local --import tsx scripts/read-check.ts",
     "retry-proof:check": "node --env-file-if-exists=.env.local --import tsx scripts/retry-proof-check.ts",
+    "demo:reset": "node --env-file-if-exists=.env.local --import tsx scripts/demo-reset.ts",
     "ui:qa": "node scripts/ui-qa.mjs"
   },
   "dependencies": {
