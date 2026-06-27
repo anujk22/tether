@@ -12,6 +12,8 @@ async function inspectPage(page) {
       ".station-scene",
       ".feature-band",
       ".mission-section",
+      ".live-control-plane",
+      ".trace-tape",
       ".testimonial-section",
       ".launch-card",
       ".site-footer",
@@ -48,6 +50,8 @@ async function inspectPage(page) {
       featureTop: featureBand ? Math.round(featureBand.top) : 0,
       featureCards: document.querySelectorAll(".feature-card").length,
       quoteCards: document.querySelectorAll(".quote-card").length,
+      traceRows: document.querySelectorAll(".trace-tape div").length,
+      liveText: document.querySelector(".live-control-plane")?.textContent ?? "",
     };
   });
 }
@@ -73,6 +77,13 @@ async function runViewport(browser, name, viewport) {
 
   await page.goto(url, { waitUntil: "networkidle", timeout: 30_000 });
   await page.waitForSelector(".site-shell", { timeout: 15_000 });
+  await page.waitForFunction(
+    () => {
+      const live = document.querySelector(".live-control-plane")?.textContent ?? "";
+      return live.includes("version") && !live.includes("Connecting");
+    },
+    { timeout: 15_000 },
+  );
 
   const metrics = await inspectPage(page);
   await page.screenshot({
@@ -127,6 +138,10 @@ try {
 
   if (desktop.metrics.quoteCards !== 3 || mobile.metrics.quoteCards !== 3) {
     throw new Error("Expected three testimonial cards in each viewport");
+  }
+
+  if (desktop.metrics.traceRows < 1 || mobile.metrics.traceRows < 1) {
+    throw new Error("Expected live operation trace rows from the backend");
   }
 
   console.log(

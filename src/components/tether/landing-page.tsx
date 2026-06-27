@@ -1,13 +1,71 @@
+"use client";
+
+import Image from "next/image";
+import { useEffect, useMemo, useState } from "react";
 import {
   ArrowLeft,
   ArrowRight,
   ChevronDown,
-  Database,
   Infinity,
   RotateCcw,
-  ShieldCheck,
-  SquareCheck,
 } from "lucide-react";
+
+type JsonRecord = Record<string, unknown>;
+
+type ActionSummary = {
+  id: string;
+  agent_name: string;
+  action_type_key: string;
+  proposed_changes: JsonRecord;
+  prior_state: JsonRecord;
+  rationale: string;
+  evidence: unknown[];
+  risk_level: string;
+  status: string;
+  reversibility_class: string;
+  idempotency_key: string;
+  created_at: string;
+  gate: JsonRecord;
+};
+
+type EntitySnapshot = {
+  version_number: number;
+  state: JsonRecord;
+  external_ref: string;
+};
+
+type TraceRow = {
+  id: string;
+  action_id: string | null;
+  operation: string;
+  table_name: string;
+  summary: string;
+  created_at: string;
+};
+
+type DashboardData = {
+  actions: ActionSummary[];
+  entity: EntitySnapshot;
+  traces: TraceRow[];
+};
+
+type RetryProof = {
+  action_id: string;
+  proposal_count: number;
+  execution_count: number;
+  status: string;
+};
+
+const assets = {
+  station: "/tether-assets/satellitestation.png",
+  bigMoon: "/tether-assets/AstroBigMoonWithAsteroidsToLeft.png",
+  gated: "/tether-assets/AstroGated.png",
+  check: "/tether-assets/AstroMiniCheck.png",
+  rollback: "/tether-assets/AstroMiniRollback.png",
+  tiny: "/tether-assets/AstronautForwardMiniIconTiny.png",
+  moon: "/tether-assets/AstronautOnMiniMoonNoEffects.png",
+  single: "/tether-assets/AstronautSingleFacingForward.png",
+};
 
 const navItems = [
   { label: "Product", menu: true },
@@ -24,27 +82,27 @@ const features = [
   {
     title: "Gate",
     body: "Control what agents can access and do.",
-    visual: "gate",
+    visual: assets.gated,
   },
   {
     title: "Approve",
     body: "Human-in-the-loop when it matters.",
-    visual: "approve",
+    visual: assets.check,
   },
   {
     title: "Record",
     body: "Capture every action with immutable logs.",
-    visual: "record",
+    visual: assets.tiny,
   },
   {
     title: "Rollback",
     body: "Revert actions. Restore state. Reduce risk.",
-    visual: "rollback",
+    visual: assets.rollback,
   },
   {
     title: "Govern",
     body: "Policies, permissions, and guardrails at scale.",
-    visual: "govern",
+    visual: assets.single,
   },
 ];
 
@@ -79,6 +137,42 @@ const footerColumns = [
   ["Company", "About", "Careers", "Partners", "Contact"],
 ];
 
+const diffKeys = [
+  "refund_status",
+  "ticket_priority",
+  "customer_health",
+  "csm_notified",
+];
+
+async function fetchJson<T>(url: string, init?: RequestInit): Promise<T> {
+  const response = await fetch(url, init);
+  const body = await response.json();
+
+  if (!response.ok) {
+    throw new Error(body.error ?? `Request failed: ${url}`);
+  }
+
+  return body as T;
+}
+
+function formatValue(value: unknown): string {
+  if (typeof value === "boolean") return value ? "true" : "false";
+  if (typeof value === "number") return String(value);
+  if (typeof value === "string") return value.replaceAll("_", " ");
+  if (value == null) return "none";
+  return JSON.stringify(value);
+}
+
+function shortId(id: string | null | undefined): string {
+  if (!id) return "pending";
+  return id.slice(0, 8);
+}
+
+function statusLabel(status: string | undefined): string {
+  if (!status) return "Connecting";
+  return status.replaceAll("_", " ");
+}
+
 function TetherLogo() {
   return (
     <span className="brand-lockup" aria-label="Tether">
@@ -92,97 +186,28 @@ function TetherLogo() {
   );
 }
 
-function Robot({ className = "" }: { className?: string }) {
+function Astro({
+  src,
+  className = "",
+  alt = "",
+  width = 120,
+  height = 120,
+}: {
+  src: string;
+  className?: string;
+  alt?: string;
+  width?: number;
+  height?: number;
+}) {
   return (
-    <span className={`robot ${className}`} aria-hidden="true">
-      <span />
-      <span />
-      <span />
-    </span>
-  );
-}
-
-function StationScene() {
-  return (
-    <div className="station-scene" aria-hidden="true">
-      <div className="star-field" />
-      <svg className="orbit orbit-one" viewBox="0 0 620 300">
-        <ellipse cx="310" cy="150" rx="270" ry="86" />
-      </svg>
-      <svg className="orbit orbit-two" viewBox="0 0 620 300">
-        <ellipse cx="310" cy="150" rx="235" ry="112" />
-      </svg>
-      <svg className="orbit orbit-three" viewBox="0 0 620 300">
-        <ellipse cx="310" cy="150" rx="185" ry="56" />
-      </svg>
-      <div className="space-station">
-        <div className="dish" />
-        <div className="tower">
-          <i />
-          <i />
-          <i />
-        </div>
-        <div className="ring ring-top" />
-        <div className="ring ring-mid">
-          {Array.from({ length: 14 }).map((_, index) => (
-            <span key={index} />
-          ))}
-        </div>
-        <div className="ring ring-bottom" />
-        <div className="core" />
-      </div>
-      <Robot className="robot-a" />
-      <Robot className="robot-b" />
-      <Robot className="robot-c" />
-      <Robot className="robot-d" />
-      <div className="satellite">
-        <span />
-        <span />
-      </div>
-      <div className="planet planet-a" />
-      <div className="planet planet-b" />
-      <div className="system-status">
-        <small>System status</small>
-        <span>All systems nominal</span>
-      </div>
-    </div>
-  );
-}
-
-function FeatureGlyph({ type }: { type: string }) {
-  return (
-    <div className={`feature-glyph feature-${type}`} aria-hidden="true">
-      {type === "gate" ? (
-        <>
-          <span className="vault" />
-          <Robot />
-        </>
-      ) : null}
-      {type === "approve" ? (
-        <>
-          <Robot />
-          <SquareCheck size={28} strokeWidth={1.4} />
-        </>
-      ) : null}
-      {type === "record" ? (
-        <>
-          <Robot />
-          <Database size={30} strokeWidth={1.4} />
-        </>
-      ) : null}
-      {type === "rollback" ? (
-        <>
-          <Robot />
-          <RotateCcw size={30} strokeWidth={1.4} />
-        </>
-      ) : null}
-      {type === "govern" ? (
-        <>
-          <Robot />
-          <ShieldCheck size={30} strokeWidth={1.4} />
-        </>
-      ) : null}
-    </div>
+    <Image
+      alt={alt}
+      className={`astro-asset ${className}`}
+      height={height}
+      priority={className.includes("hero")}
+      src={src}
+      width={width}
+    />
   );
 }
 
@@ -198,30 +223,193 @@ function LogoWord({ name }: { name: string }) {
   );
 }
 
-function ControlDiagram() {
+function StationScene({
+  dashboard,
+  loading,
+}: {
+  dashboard: DashboardData | null;
+  loading: boolean;
+}) {
+  const action = dashboard?.actions[0];
+  const status = action?.status;
+
   return (
-    <div className="control-diagram" aria-label="AI agents connect through Tether">
+    <div className="station-scene" aria-label="Live Tether system status">
+      <div className="star-field" />
+      <svg className="orbit orbit-one" viewBox="0 0 620 300">
+        <ellipse cx="310" cy="150" rx="270" ry="86" />
+      </svg>
+      <svg className="orbit orbit-two" viewBox="0 0 620 300">
+        <ellipse cx="310" cy="150" rx="235" ry="112" />
+      </svg>
+      <svg className="orbit orbit-three" viewBox="0 0 620 300">
+        <ellipse cx="310" cy="150" rx="185" ry="56" />
+      </svg>
+      <Astro
+        alt=""
+        className="hero-station"
+        height={1254}
+        src={assets.station}
+        width={1254}
+      />
+      <Astro
+        alt=""
+        className="hero-astro hero-astro-a"
+        height={587}
+        src={assets.tiny}
+        width={507}
+      />
+      <Astro
+        alt=""
+        className="hero-astro hero-astro-b"
+        height={587}
+        src={assets.tiny}
+        width={507}
+      />
+      <Astro
+        alt=""
+        className="hero-astro hero-astro-c"
+        height={587}
+        src={assets.tiny}
+        width={507}
+      />
+      <div className="planet planet-a" aria-hidden="true" />
+      <div className="planet planet-b" aria-hidden="true" />
+      <div className="system-status">
+        <small>DSQL status</small>
+        <span>{loading ? "Connecting to ledger" : statusLabel(status)}</span>
+        <code>
+          {dashboard
+            ? `v${dashboard.entity.version_number} · traces ${dashboard.traces.length} · actions ${dashboard.actions.length}`
+            : "waiting for Aurora DSQL"}
+        </code>
+      </div>
+    </div>
+  );
+}
+
+function FeatureGlyph({ src, title }: { src: string; title: string }) {
+  return (
+    <div className="feature-glyph" aria-hidden="true">
+      <Astro
+        className={`feature-art feature-art-${title.toLowerCase()}`}
+        height={720}
+        src={src}
+        width={835}
+      />
+    </div>
+  );
+}
+
+function LiveDiff({ action }: { action: ActionSummary | undefined }) {
+  if (!action) {
+    return <div className="live-empty">Reset the demo to create the canonical refund proposal.</div>;
+  }
+
+  return (
+    <div className="live-diff" aria-label="Live state diff from proposal snapshots">
+      {diffKeys.map((key) => (
+        <div className="live-diff-row" key={key}>
+          <code>{key}</code>
+          <span>{formatValue(action.prior_state[key])}</span>
+          <b>→</b>
+          <strong>{formatValue(action.proposed_changes[key])}</strong>
+        </div>
+      ))}
+    </div>
+  );
+}
+
+function TraceTape({ traces }: { traces: TraceRow[] }) {
+  const latest = traces.slice(-4).reverse();
+
+  return (
+    <div className="trace-tape" aria-label="Live operation traces">
+      {latest.length ? (
+        latest.map((trace) => (
+          <div key={trace.id}>
+            <span>{trace.operation}</span>
+            <code>{trace.table_name}</code>
+            <p>{trace.summary}</p>
+          </div>
+        ))
+      ) : (
+        <p>No operation traces yet.</p>
+      )}
+    </div>
+  );
+}
+
+function ControlDiagram({
+  dashboard,
+  busy,
+  lastEvent,
+  onReset,
+  onApprove,
+  onRollback,
+  onRetry,
+}: {
+  dashboard: DashboardData | null;
+  busy: string | null;
+  lastEvent: string;
+  onReset: () => void;
+  onApprove: () => void;
+  onRollback: () => void;
+  onRetry: () => void;
+}) {
+  const action = dashboard?.actions[0];
+  const canApprove = action?.status === "approval_required";
+  const canRollback = action?.status === "executed";
+
+  return (
+    <div className="control-diagram" id="how" aria-label="Live Tether control plane">
       <div className="diagram-label">AI agents</div>
       <div className="agent-row">
         {Array.from({ length: 5 }).map((_, index) => (
-          <Robot key={index} />
+          <Astro
+            alt=""
+            className="agent-astro"
+            height={587}
+            key={index}
+            src={assets.tiny}
+            width={507}
+          />
         ))}
         <span className="more-node">...</span>
       </div>
-      <div className="control-plane">
+      <div className="control-plane live-control-plane">
         <TetherLogo />
-        <div className="control-tabs">
-          {features.map((feature) => (
-            <span key={feature.title}>{feature.title}</span>
-          ))}
+        <div className="live-ledger-row">
+          <span>
+            status <strong>{statusLabel(action?.status)}</strong>
+          </span>
+          <span>
+            version <strong>v{dashboard?.entity.version_number ?? "-"}</strong>
+          </span>
+          <span>
+            action <strong>{shortId(action?.id)}</strong>
+          </span>
         </div>
+        <LiveDiff action={action} />
+        <div className="live-actions">
+          <button disabled={busy !== null} onClick={onReset} type="button">
+            Reset demo
+          </button>
+          <button disabled={!canApprove || busy !== null} onClick={onApprove} type="button">
+            Approve refund
+          </button>
+          <button disabled={!canRollback || busy !== null} onClick={onRollback} type="button">
+            <RotateCcw size={14} />
+            Rollback action
+          </button>
+          <button disabled={busy !== null} onClick={onRetry} type="button">
+            Retry ×3
+          </button>
+        </div>
+        <p className="live-event">{busy ?? lastEvent}</p>
       </div>
-      <div className="diagram-label">Tools, data & infrastructure</div>
-      <div className="tool-row">
-        {["◎", "▰", "⚙", "✶", "aws", "..."].map((tool) => (
-          <span key={tool}>{tool}</span>
-        ))}
-      </div>
+      <div className="diagram-label">Aurora DSQL operation_traces</div>
+      <TraceTape traces={dashboard?.traces ?? []} />
     </div>
   );
 }
@@ -229,18 +417,79 @@ function ControlDiagram() {
 function MoonPanel() {
   return (
     <div className="moon-panel" aria-hidden="true">
-      <div className="moon-orbits" />
-      <div className="moon-surface" />
-      <Robot className="moon-robot" />
-      <span className="flag" />
-      <span className="small-planet planet-one" />
-      <span className="small-planet planet-two" />
-      <span className="small-planet planet-three" />
+      <Astro
+        className="moon-image"
+        height={816}
+        src={assets.bigMoon}
+        width={1448}
+      />
     </div>
   );
 }
 
 export function LandingPage() {
+  const [dashboard, setDashboard] = useState<DashboardData | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [busy, setBusy] = useState<string | null>(null);
+  const [lastEvent, setLastEvent] = useState("Live DSQL ledger connected.");
+
+  async function refreshDashboard() {
+    const nextDashboard = await fetchJson<DashboardData>("/v1/dashboard");
+    setDashboard(nextDashboard);
+    setLoading(false);
+    return nextDashboard;
+  }
+
+  useEffect(() => {
+    let active = true;
+
+    async function load() {
+      try {
+        const nextDashboard = await fetchJson<DashboardData>("/v1/dashboard");
+        if (!active) return;
+        setDashboard(nextDashboard);
+        setLoading(false);
+      } catch (error) {
+        if (!active) return;
+        setLoading(false);
+        setLastEvent(error instanceof Error ? error.message : "Dashboard fetch failed.");
+      }
+    }
+
+    void load();
+    const interval = window.setInterval(() => {
+      void load();
+    }, 1800);
+
+    return () => {
+      active = false;
+      window.clearInterval(interval);
+    };
+  }, []);
+
+  async function runMutation(label: string, mutation: () => Promise<unknown>) {
+    setBusy(label);
+    try {
+      const result = await mutation();
+      await refreshDashboard();
+      if (label === "Retry proof") {
+        const retry = result as RetryProof;
+        setLastEvent(
+          `Retry proof: ${retry.proposal_count} proposal · ${retry.execution_count} execution · 0 double refunds.`,
+        );
+      } else {
+        setLastEvent(`${label} completed against Aurora DSQL.`);
+      }
+    } catch (error) {
+      setLastEvent(error instanceof Error ? error.message : `${label} failed.`);
+    } finally {
+      setBusy(null);
+    }
+  }
+
+  const action = dashboard?.actions[0];
+  const heroStatus = useMemo(() => statusLabel(action?.status), [action?.status]);
+
   return (
     <main className="site-shell">
       <header className="site-header">
@@ -254,11 +503,20 @@ export function LandingPage() {
           ))}
         </nav>
         <div className="header-actions">
-          <a href="#signin">Sign in</a>
-          <a className="button button-light" href="#demo">
+          <a href="#how">Sign in</a>
+          <button
+            className="button button-light"
+            disabled={busy !== null}
+            onClick={() =>
+              void runMutation("Reset demo", () =>
+                fetchJson("/v1/demo/reset", { method: "POST" }),
+              )
+            }
+            type="button"
+          >
             Book a demo
             <ArrowRight size={16} />
-          </a>
+          </button>
         </div>
       </header>
 
@@ -277,11 +535,20 @@ export function LandingPage() {
             Govern at scale.
           </p>
           <div className="hero-actions">
-            <a className="button button-light" href="#demo">
+            <button
+              className="button button-light"
+              disabled={busy !== null}
+              onClick={() =>
+                void runMutation("Reset demo", () =>
+                  fetchJson("/v1/demo/reset", { method: "POST" }),
+                )
+              }
+              type="button"
+            >
               Book a demo
               <ArrowRight size={18} />
-            </a>
-            <a className="button button-dark" href="#product">
+            </button>
+            <a className="button button-dark" href="#how">
               Explore product
             </a>
           </div>
@@ -294,14 +561,14 @@ export function LandingPage() {
             </div>
           </div>
         </div>
-        <StationScene />
+        <StationScene dashboard={dashboard} loading={loading} />
       </section>
 
       <section className="feature-band" id="product" aria-label="Tether capabilities">
         {features.map((feature) => (
           <article className="feature-card" key={feature.title}>
             <h2>{feature.title}</h2>
-            <FeatureGlyph type={feature.visual} />
+            <FeatureGlyph src={feature.visual} title={feature.title} />
             <p>{feature.body}</p>
           </article>
         ))}
@@ -309,18 +576,58 @@ export function LandingPage() {
 
       <section className="mission-section">
         <div className="mission-copy">
-          <span>Built for how agents work</span>
+          <span>Built on real writes</span>
           <h2>Mission control for your agent ecosystem.</h2>
           <p>
-            Tether sits between your agents and the tools, APIs, and data they
-            use, providing policy, visibility, and control across every action.
+            The module to the right is live: it reads real proposals, versions,
+            approval state, retry proof, and operation traces from Aurora DSQL.
           </p>
           <a href="#how">
-            See how Tether works
+            Current state: {heroStatus}
             <ArrowRight size={18} />
           </a>
         </div>
-        <ControlDiagram />
+        <ControlDiagram
+          busy={busy}
+          dashboard={dashboard}
+          lastEvent={lastEvent}
+          onApprove={() =>
+            action &&
+            void runMutation("Approve refund", () =>
+              fetchJson(`/v1/actions/${action.id}/decision`, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                  decision: "approve",
+                  note: "Landing page approval from Tether.",
+                }),
+              }),
+            )
+          }
+          onReset={() =>
+            void runMutation("Reset demo", () =>
+              fetchJson("/v1/demo/reset", { method: "POST" }),
+            )
+          }
+          onRetry={() =>
+            void runMutation("Retry proof", () =>
+              fetchJson<RetryProof>("/v1/actions/retry-demo", { method: "POST" }),
+            )
+          }
+          onRollback={() =>
+            action &&
+            void runMutation("Rollback action", () =>
+              fetchJson(`/v1/actions/${action.id}/rollback`, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                  performed_by_user_id: "00000000-0000-4000-8000-000000000102",
+                  reason: "Landing page rollback requested by finance.",
+                }),
+              }),
+            )
+          }
+        />
       </section>
 
       <section className="testimonial-section" aria-label="Customer quotes">
@@ -356,11 +663,20 @@ export function LandingPage() {
           </p>
         </div>
         <div className="launch-actions">
-          <a className="button button-light" href="#demo">
+          <button
+            className="button button-light"
+            disabled={busy !== null}
+            onClick={() =>
+              void runMutation("Reset demo", () =>
+                fetchJson("/v1/demo/reset", { method: "POST" }),
+              )
+            }
+            type="button"
+          >
             Book a demo
             <ArrowRight size={18} />
-          </a>
-          <a href="#product">
+          </button>
+          <a href="#how">
             Explore product
             <ArrowRight size={18} />
           </a>

@@ -678,3 +678,32 @@ Next action:
 - `pnpm lint` passed.
 - `pnpm build` passed.
 - `pnpm ui:qa` passed and refreshed `artifacts/tether-desktop.png` plus `artifacts/tether-mobile.png`.
+
+## 2026-06-27 - Landing Page Backend Wiring + Generated Assets
+
+### Inputs
+
+- User supplied transparent generated PNGs for the astronaut, gated module, approve/rollback visuals, moon CTA, and satellite station.
+- User requested that the landing page connect to the real backend instead of remaining static.
+
+### Changes
+
+- Copied generated PNG assets into `public/tether-assets`.
+- Replaced the CSS-drawn station, astronauts, feature glyphs, and moon CTA art with the generated PNGs.
+- Converted the landing page to a client component that polls `/v1/dashboard`.
+- Wired landing controls to real backend routes:
+  - `POST /v1/demo/reset`
+  - `POST /v1/actions/{id}/decision`
+  - `POST /v1/actions/{id}/rollback`
+  - `POST /v1/actions/retry-demo`
+- Reworked the central control-plane module so it displays real status, entity version, action id, proposal snapshot diff, and operation traces from Aurora DSQL.
+- Updated QA to assert the live control panel and real trace rows are present.
+
+### Verification
+
+- `pnpm exec tsc --noEmit` passed.
+- `pnpm lint` passed.
+- `pnpm build` passed.
+- `pnpm ui:qa` passed.
+- Browser interaction test passed: reset -> approve -> rollback -> backend confirms original `issue_refund` became `compensated` -> reset.
+- Final dashboard state verified: `v4`, one action, two traces, latest status `approval_required`.
