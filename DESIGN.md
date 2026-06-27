@@ -123,10 +123,10 @@ The signature element is the Ledger Rail: a horizontal state-machine track in th
 
 ## Quality Checklist
 
-- [ ] Avoids all three AI-default looks.
-- [ ] State-driven color is meaningful and consistent.
-- [ ] Geist plus Geist Mono pairing is deliberate and visible.
-- [ ] Rollback rewind is the orchestrated money shot.
-- [ ] Four-panel surface looks bespoke beside polished B2B tools.
-- [ ] Loading, empty, error, focus, and reduced-motion states are implemented.
-- [ ] Every animation earns its place.
+- [x] Avoids all three AI-default looks.
+- [x] State-driven color is meaningful and consistent.
+- [x] Geist plus Geist Mono pairing is deliberate and visible.
+- [x] Rollback rewind is the orchestrated money shot.
+- [x] Four-panel surface looks bespoke beside polished B2B tools.
+- [x] Loading, empty, error, focus, and reduced-motion states are implemented.
+- [x] Every animation earns its place.

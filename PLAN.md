@@ -141,12 +141,12 @@ Goal: Build the four-panel control surface with the design bar from PRD Part 2.
   - Include display/body/mono type choices.
   - Include ASCII wireframes for the four panels.
   - Include the signature visual element and a critique against AI-default dashboard looks.
-- [ ] 6.2 Implement the four panels: Agent Intake, Policy Gate, Decision, DSQL Flight Recorder.
-- [ ] 6.3 Apply state-driven semantic palette consistently across timeline, pills, trace rows, and diffs.
-- [ ] 6.4 Add orchestrated state-machine motion, gate-slam, rollback rewind, recorder stream, and retry merge.
-- [ ] 6.5 Add accessible focus states, reduced-motion behavior, loading, empty, and error states.
-- [ ] 6.6 QA desktop and mobile with screenshots and fix layout/text overlap issues.
-- [ ] 6.7 Complete the PRD Part 2.10 anti-generic checklist.
+- [x] 6.2 Implement the four panels: Agent Intake, Policy Gate, Decision, DSQL Flight Recorder.
+- [x] 6.3 Apply state-driven semantic palette consistently across timeline, pills, trace rows, and diffs.
+- [x] 6.4 Add orchestrated state-machine motion, gate-slam, rollback rewind, recorder stream, and retry merge.
+- [x] 6.5 Add accessible focus states, reduced-motion behavior, loading, empty, and error states.
+- [x] 6.6 QA desktop and mobile with screenshots and fix layout/text overlap issues.
+- [x] 6.7 Complete the PRD Part 2.10 anti-generic checklist.
 
 Phase 6 Definition of Done: the app looks like a bespoke control surface, not a generic SaaS template, and all key flows are usable.
 

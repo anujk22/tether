@@ -560,3 +560,39 @@ How to verify:
 Next action:
 
 - Commit Phase 6.1, then build the four-panel control surface.
+
+## 2026-06-26 - Phase 6.2-6.7 Frontend Control Surface
+
+Completed:
+
+- Installed `@tanstack/react-query`, `motion`, `lucide-react`, and Playwright for frontend implementation and QA.
+- Replaced the starter page with the four-panel Tether console.
+- Built Agent Intake, Policy Gate, Decision, and DSQL Flight Recorder panels.
+- Wired real backend mutations for propose, approve, rollback, and Retry x3.
+- Wired live dashboard polling with TanStack Query at a one-second interval.
+- Applied the state-driven semantic palette across pills, rail nodes, diffs, traces, and retry chips.
+- Added state-machine rail motion, recorder row arrivals, retry merge chips, loading skeleton, empty/error states, visible focus, and reduced-motion CSS.
+- Added `pnpm ui:qa` with Playwright desktop/mobile screenshots and overflow/console checks.
+- Fixed a desktop panel-overlap bug found by browser QA.
+- Verified with `pnpm ui:qa`, `pnpm exec tsc --noEmit`, `pnpm lint`, and `pnpm build`.
+- Completed the `DESIGN.md` anti-generic checklist.
+- Marked Phase 6.2 through Phase 6.7 complete in `PLAN.md`.
+
+Decisions:
+
+- The desktop app is viewport-constrained with internal panel scrolling where needed; mobile uses a stacked page flow.
+- The Flight Recorder is a compact bottom band on desktop and a full stacked panel on mobile.
+
+Current state:
+
+- Local dev server is running at `http://localhost:3000`.
+- Browser screenshots are generated under ignored `artifacts/`.
+
+How to verify:
+
+- Run `pnpm ui:qa`.
+- Run `pnpm build`.
+
+Next action:
+
+- Commit Phase 6, then begin Phase 7 shipping artifacts. Deployment still needs Vercel project/team details from the user.
