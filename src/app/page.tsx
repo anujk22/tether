@@ -1,10 +1,5 @@
-import { TetherQueryProvider } from "@/components/tether/query-provider";
-import { TetherConsole } from "@/components/tether/tether-console";
+import { LandingPage } from "@/components/tether/landing-page";
 
 export default function Home() {
-  return (
-    <TetherQueryProvider>
-      <TetherConsole />
-    </TetherQueryProvider>
-  );
+  return <LandingPage />;
 }

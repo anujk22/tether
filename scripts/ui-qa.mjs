@@ -6,24 +6,27 @@ const outputDir = "artifacts";
 
 async function inspectPage(page) {
   return page.evaluate(() => {
-    const panels = [...document.querySelectorAll(".console-panel")].map((el) => {
-      const rect = el.getBoundingClientRect();
-      return {
-        className: el.className,
-        width: Math.round(rect.width),
-        height: Math.round(rect.height),
-      };
-    });
+    const required = [
+      ".site-header",
+      ".hero-section",
+      ".station-scene",
+      ".feature-band",
+      ".mission-section",
+      ".testimonial-section",
+      ".launch-card",
+      ".site-footer",
+    ];
+    const missing = required.filter((selector) => !document.querySelector(selector));
     const overflow = [
-      ...document.querySelectorAll("button, h1, h2, p, strong, span, code"),
+      ...document.querySelectorAll("a, button, h1, h2, p, strong, span, small"),
     ]
-      .filter(
-        (el) =>
-          el.scrollWidth > el.clientWidth + 1 &&
-          !el.closest(".trace-row") &&
-          !el.closest(".diff-row") &&
-          !el.closest(".action-card"),
-      )
+      .filter((el) => {
+        if (el.closest(".pixel-mark") || el.closest(".robot")) return false;
+        if (el.classList.contains("flag") || el.closest(".newsletter label")) {
+          return false;
+        }
+        return el.scrollWidth > el.clientWidth + 1;
+      })
       .slice(0, 12)
       .map((el) => ({
         tag: el.tagName,
@@ -32,12 +35,19 @@ async function inspectPage(page) {
         scrollWidth: el.scrollWidth,
         clientWidth: el.clientWidth,
       }));
+    const hero = document.querySelector(".hero-section")?.getBoundingClientRect();
+    const featureBand = document
+      .querySelector(".feature-band")
+      ?.getBoundingClientRect();
 
     return {
       title: document.title,
-      panels,
+      missing,
       overflow,
-      hasRecorderRows: document.querySelectorAll(".trace-row").length > 0,
+      heroHeight: hero ? Math.round(hero.height) : 0,
+      featureTop: featureBand ? Math.round(featureBand.top) : 0,
+      featureCards: document.querySelectorAll(".feature-card").length,
+      quoteCards: document.querySelectorAll(".quote-card").length,
     };
   });
 }
@@ -62,16 +72,7 @@ async function runViewport(browser, name, viewport) {
   });
 
   await page.goto(url, { waitUntil: "networkidle", timeout: 30_000 });
-  await page.waitForSelector(".console-grid", { timeout: 15_000 });
-
-  if (name === "desktop") {
-    await page.getByRole("button", { name: /Simulate retry (x|×)3/i }).click();
-    await page.waitForFunction(
-      () => document.body.innerText.includes("proposal_count=1") === false,
-      { timeout: 1_000 },
-    ).catch(() => {});
-    await page.waitForTimeout(1_200);
-  }
+  await page.waitForSelector(".site-shell", { timeout: 15_000 });
 
   const metrics = await inspectPage(page);
   await page.screenshot({
@@ -93,12 +94,12 @@ const browser = await chromium.launch({ headless: true });
 
 try {
   const desktop = await runViewport(browser, "desktop", {
-    width: 1440,
-    height: 950,
+    width: 1068,
+    height: 1536,
   });
   const mobile = await runViewport(browser, "mobile", {
     width: 390,
-    height: 844,
+    height: 1600,
   });
 
   const allConsole = [...desktop.consoleMessages, ...mobile.consoleMessages];
@@ -106,31 +107,26 @@ try {
     ...desktop.metrics.overflow,
     ...mobile.metrics.overflow,
   ];
+  const missing = [...desktop.metrics.missing, ...mobile.metrics.missing];
 
   if (allConsole.length) {
     throw new Error(`Console errors: ${JSON.stringify(allConsole)}`);
+  }
+
+  if (missing.length) {
+    throw new Error(`Missing landing sections: ${JSON.stringify(missing)}`);
   }
 
   if (allOverflow.length) {
     throw new Error(`Text overflow: ${JSON.stringify(allOverflow)}`);
   }
 
-  if (!desktop.metrics.hasRecorderRows || !mobile.metrics.hasRecorderRows) {
-    throw new Error("Flight Recorder rendered without trace rows");
+  if (desktop.metrics.featureCards !== 5 || mobile.metrics.featureCards !== 5) {
+    throw new Error("Expected five feature cards in each viewport");
   }
 
-  if (desktop.metrics.panels.length < 4 || mobile.metrics.panels.length < 4) {
-    throw new Error("Expected four console panels in each viewport");
-  }
-
-  const desktopRecorder = desktop.metrics.panels.find((panel) =>
-    panel.className.includes("recorder-panel"),
-  );
-
-  if (!desktopRecorder || desktopRecorder.height < 180) {
-    throw new Error(
-      `Desktop Flight Recorder height below 180px: ${desktopRecorder?.height}`,
-    );
+  if (desktop.metrics.quoteCards !== 3 || mobile.metrics.quoteCards !== 3) {
+    throw new Error("Expected three testimonial cards in each viewport");
   }
 
   console.log(
@@ -143,7 +139,6 @@ try {
         ],
         desktop: desktop.metrics,
         mobile: mobile.metrics,
-        overflow: allOverflow,
       },
       null,
       2,

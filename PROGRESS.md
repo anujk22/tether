@@ -656,3 +656,25 @@ Next action:
 - Promoted the DSQL Flight Recorder to a full 180px desktop tape with mono trace rows, REC indicator, newest-first ordering, and row tick-in motion.
 - Added the in-app `Reset demo` control and left the demo in the canonical `approval_required` start state after screenshot refresh.
 - Browser QA now enforces no console warnings, no text overflow, four panels on desktop/mobile, trace rows present, and desktop Recorder height at least 180px.
+
+## 2026-06-27 - Marketing Site Visual Replication
+
+### Inputs
+
+- User supplied a monochrome Tether landing-page screenshot as the visual target.
+- Assumption: replace the `/` frontend with a marketing-site surface matching the screenshot, while leaving all backend/API routes intact.
+
+### Changes
+
+- Replaced the root dashboard render with a static Tether landing page.
+- Built the black space-control visual system across hero, navigation, feature band, mission diagram, testimonials, launch CTA, footer, and not-found page.
+- Recreated the space-station, robot, moon, logo, and diagram imagery with inline SVG/CSS so no generated image dependency is required.
+- Added the display serif used by the hero/headline treatment and kept compact sans for navigation/body UI.
+- Updated `pnpm ui:qa` to verify the landing page sections, desktop/mobile screenshots, text overflow, console warnings, feature cards, and testimonial cards.
+
+### Verification
+
+- `pnpm exec tsc --noEmit` passed.
+- `pnpm lint` passed.
+- `pnpm build` passed.
+- `pnpm ui:qa` passed and refreshed `artifacts/tether-desktop.png` plus `artifacts/tether-mobile.png`.
