@@ -750,3 +750,25 @@ Next action:
 ### Next
 
 - Add the Ledger, Audit Trail, Policies, and Infrastructure views around the cockpit shell.
+
+## 2026-06-29 - Console Depth Views P1
+
+### Changes
+
+- Added read-only `GET /v1/policies` for live `approval_rules`.
+- Added read-only `GET /v1/infrastructure` for DSQL connection metadata and row counts.
+- Added `/console` sidebar navigation with views for Action Cockpit, Ledger, Audit Trail, Policies, and Aurora DSQL.
+- Ledger view shows append-only `entity_versions`, active pointer, creator action, timestamps, and full JSON state.
+- Audit Trail view shows chronological `audit_events` and filters by action.
+- Policies view renders DSQL approval rule conditions, priority, decision, and required role.
+- Infrastructure view shows Aurora DSQL status, region, IAM auth, row counts, retry proof, and trace groups as transaction summaries.
+
+### Verification
+
+- `pnpm exec tsc --noEmit` passed.
+- `pnpm lint` passed with the pre-existing `src/components/tether/product-cockpit.tsx` warning.
+- Read-only DSQL check returned `{"rules":5,"tables":15,"status":"connected"}`.
+
+### Next
+
+- Add scoped acting-role enforcement for approvals.

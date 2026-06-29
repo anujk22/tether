@@ -6,12 +6,17 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { AnimatePresence, motion, useReducedMotion } from "motion/react";
 import {
   AlertTriangle,
+  Activity,
+  BookOpen,
   Check,
   CheckCircle2,
   CircleDollarSign,
   Clock3,
   Database,
   GitMerge,
+  History,
+  ListChecks,
+  Network,
   RefreshCcw,
   RotateCcw,
   ShieldCheck,
@@ -60,6 +65,8 @@ type EntityVersion = {
   version_number: number;
   state: JsonRecord;
   is_active: boolean;
+  created_by_action_id: string | null;
+  created_at: string;
 };
 
 type TraceRow = {
@@ -76,6 +83,43 @@ type DashboardData = {
   entity: EntitySnapshot;
   versions: EntityVersion[];
   traces: TraceRow[];
+  auditEvents: AuditRow[];
+};
+
+type AuditRow = {
+  id: string;
+  action_id: string | null;
+  event_type: string;
+  payload: JsonRecord;
+  created_at: string;
+};
+
+type PolicyRule = {
+  id: string;
+  action_type_key: string;
+  condition: JsonRecord;
+  decision: string;
+  required_approver_role: string | null;
+  priority: number;
+  created_at: string;
+};
+
+type PoliciesData = {
+  rules: PolicyRule[];
+};
+
+type InfrastructureData = {
+  status: string;
+  region: string;
+  database: string;
+  auth: string;
+  consistency: string;
+  isolation: string;
+  checked_at: string;
+  rowCounts: Array<{
+    table_name: string;
+    count: number;
+  }>;
 };
 
 type RetryProof = {
@@ -97,6 +141,8 @@ type MutationError = {
   message: string;
 };
 
+type ConsoleView = "cockpit" | "ledger" | "audit" | "policies" | "infrastructure";
+
 type ComposerDraft = {
   actionType: "issue_refund" | "refund_reversal";
   refundAmount: string;
@@ -112,6 +158,18 @@ const defaultDraft: ComposerDraft = {
   customerHealth: "at_risk",
   riskLevel: "HIGH",
 };
+
+const consoleViews: Array<{
+  key: ConsoleView;
+  label: string;
+  icon: typeof Clock3;
+}> = [
+  { key: "cockpit", label: "Action Cockpit", icon: Activity },
+  { key: "ledger", label: "Ledger", icon: History },
+  { key: "audit", label: "Audit Trail", icon: ListChecks },
+  { key: "policies", label: "Policies", icon: BookOpen },
+  { key: "infrastructure", label: "Aurora DSQL", icon: Network },
+];
 
 const lifecycle = [
   "proposed",
@@ -221,6 +279,30 @@ function formatTime(value: string): string {
   const ms = String(date.getMilliseconds()).padStart(3, "0");
 
   return `${h}:${m}:${s}.${ms}`;
+}
+
+function formatDateTime(value: string): string {
+  const date = new Date(value);
+
+  if (Number.isNaN(date.getTime())) return value;
+
+  return date.toLocaleString(undefined, {
+    month: "short",
+    day: "numeric",
+    hour: "2-digit",
+    minute: "2-digit",
+    second: "2-digit",
+  });
+}
+
+function actionLabel(action: ActionSummary | undefined): string {
+  if (!action) return "No action";
+
+  return `${action.action_type_key.replaceAll("_", " ")} · ${shortId(action.id)}`;
+}
+
+function jsonPreview(value: unknown): string {
+  return JSON.stringify(value, null, 2);
 }
 
 function evidenceItems(action: ActionSummary): Array<{
@@ -868,15 +950,294 @@ function Skeleton() {
   );
 }
 
+function ConsoleSidebar({
+  activeView,
+  onChange,
+}: {
+  activeView: ConsoleView;
+  onChange: (view: ConsoleView) => void;
+}) {
+  return (
+    <aside className="console-sidebar" aria-label="Console views">
+      <div className="sidebar-brand">
+        <strong>Tether</strong>
+        <span>Control plane</span>
+      </div>
+      <nav>
+        {consoleViews.map((view) => {
+          const Icon = view.icon;
+
+          return (
+            <button
+              aria-current={activeView === view.key ? "page" : undefined}
+              data-active={activeView === view.key}
+              key={view.key}
+              onClick={() => onChange(view.key)}
+              type="button"
+            >
+              <Icon aria-hidden="true" size={16} />
+              {view.label}
+            </button>
+          );
+        })}
+      </nav>
+    </aside>
+  );
+}
+
+function LedgerView({
+  versions,
+  actions,
+}: {
+  versions: EntityVersion[];
+  actions: ActionSummary[];
+}) {
+  const actionById = new Map(actions.map((action) => [action.id, action]));
+
+  return (
+    <section className="console-panel view-panel ledger-view">
+      <PanelTitle icon={History} title="Ledger / Version History" aside="entity_versions" />
+      <div className="version-timeline">
+        {[...versions].reverse().map((version) => {
+          const creator = version.created_by_action_id
+            ? actionById.get(version.created_by_action_id)
+            : undefined;
+
+          return (
+            <article data-active={version.is_active} key={version.id}>
+              <div className="version-head">
+                <span>v{version.version_number}</span>
+                <strong>{version.is_active ? "active pointer" : "append-only"}</strong>
+                <code>{shortId(version.id)}</code>
+              </div>
+              <div className="version-meta">
+                <span>created {formatDateTime(version.created_at)}</span>
+                <span>by {actionLabel(creator)}</span>
+              </div>
+              <pre>{jsonPreview(version.state)}</pre>
+            </article>
+          );
+        })}
+      </div>
+    </section>
+  );
+}
+
+function AuditTrailView({
+  auditEvents,
+  actions,
+}: {
+  auditEvents: AuditRow[];
+  actions: ActionSummary[];
+}) {
+  const [filterActionId, setFilterActionId] = useState("all");
+  const actionById = new Map(actions.map((action) => [action.id, action]));
+  const filtered =
+    filterActionId === "all"
+      ? auditEvents
+      : auditEvents.filter((event) => event.action_id === filterActionId);
+
+  return (
+    <section className="console-panel view-panel audit-view">
+      <PanelTitle icon={ListChecks} title="Audit Trail" aside="audit_events" />
+      <label className="view-filter">
+        <span>Filter by action</span>
+        <select
+          value={filterActionId}
+          onChange={(event) => setFilterActionId(event.currentTarget.value)}
+        >
+          <option value="all">All actions</option>
+          {actions.map((action) => (
+            <option key={action.id} value={action.id}>
+              {actionLabel(action)}
+            </option>
+          ))}
+        </select>
+      </label>
+      <div className="audit-list-view">
+        {filtered.map((event) => {
+          const action = event.action_id ? actionById.get(event.action_id) : undefined;
+
+          return (
+            <article key={event.id}>
+              <time>{formatDateTime(event.created_at)}</time>
+              <strong>{event.event_type.replaceAll("_", " ")}</strong>
+              <span>{actionLabel(action)}</span>
+              <pre>{jsonPreview(event.payload)}</pre>
+            </article>
+          );
+        })}
+      </div>
+    </section>
+  );
+}
+
+function PoliciesView({
+  policies,
+}: {
+  policies: PoliciesData | undefined;
+}) {
+  const rules = policies?.rules ?? [];
+
+  return (
+    <section className="console-panel view-panel policies-view">
+      <PanelTitle icon={BookOpen} title="Policies" aside="approval_rules" />
+      <div className="policy-rule-grid">
+        {rules.map((rule) => (
+          <article key={rule.id}>
+            <div>
+              <span>Priority {rule.priority}</span>
+              <StatusPill
+                status={
+                  rule.decision === "auto_approve"
+                    ? "approved"
+                    : rule.decision === "deny"
+                      ? "rejected"
+                      : "approval_required"
+                }
+              />
+            </div>
+            <h3>{rule.action_type_key.replaceAll("_", " ")}</h3>
+            <dl>
+              <div>
+                <dt>Decision</dt>
+                <dd>{rule.decision.replaceAll("_", " ")}</dd>
+              </div>
+              <div>
+                <dt>Required role</dt>
+                <dd>{rule.required_approver_role?.replaceAll("_", " ") ?? "none"}</dd>
+              </div>
+            </dl>
+            <pre>{jsonPreview(rule.condition)}</pre>
+          </article>
+        ))}
+      </div>
+    </section>
+  );
+}
+
+function traceGroups(traces: TraceRow[]) {
+  const groups = new Map<string, TraceRow[]>();
+
+  for (const trace of traces) {
+    const key = trace.action_id ?? "foundation";
+    groups.set(key, [...(groups.get(key) ?? []), trace]);
+  }
+
+  return Array.from(groups.entries())
+    .map(([actionId, rows]) => ({
+      actionId,
+      rows,
+      last: rows[rows.length - 1],
+    }))
+    .sort((left, right) => {
+      const leftTime = new Date(left.last?.created_at ?? 0).getTime();
+      const rightTime = new Date(right.last?.created_at ?? 0).getTime();
+
+      return rightTime - leftTime;
+    });
+}
+
+function InfrastructureView({
+  infrastructure,
+  traces,
+  retryProof,
+  retrying,
+  onRetry,
+}: {
+  infrastructure: InfrastructureData | undefined;
+  traces: TraceRow[];
+  retryProof: RetryProof | null;
+  retrying: boolean;
+  onRetry: () => void;
+}) {
+  return (
+    <section className="console-panel view-panel infrastructure-view">
+      <PanelTitle icon={Network} title="Infrastructure / Aurora DSQL" aside="live proof" />
+      <div className="infra-status-line">
+        Aurora DSQL · {infrastructure?.region ?? "us-east-1"} ·{" "}
+        {infrastructure?.auth ?? "IAM token auth"} ·{" "}
+        {infrastructure?.consistency ?? "strong consistency"} ·{" "}
+        {infrastructure?.isolation ?? "snapshot isolation"} · Next.js on Vercel
+      </div>
+      <div className="infra-grid">
+        <article>
+          <span>Connection</span>
+          <strong>{infrastructure?.status ?? "checking"}</strong>
+          <code>{infrastructure?.database ?? "postgres"}</code>
+        </article>
+        <article>
+          <span>Checked at</span>
+          <strong>{infrastructure ? formatDateTime(infrastructure.checked_at) : "pending"}</strong>
+          <code>SELECT now()</code>
+        </article>
+        <article>
+          <span>Retry proof</span>
+          <strong>
+            {retryProof
+              ? `${retryProof.proposal_count} proposal · ${retryProof.execution_count} execution`
+              : "ready"}
+          </strong>
+          <code>23505 dedupe · 40001 retry</code>
+        </article>
+      </div>
+      <div className="infra-proof">
+        <button
+          className="primary-control"
+          disabled={retrying}
+          onClick={onRetry}
+          style={stateStyle("executed", "token")}
+          type="button"
+        >
+          <GitMerge aria-hidden="true" size={16} />
+          {retrying ? "Running retry proof" : "Fire retry x3"}
+        </button>
+        <p>
+          Three concurrent proposals share one idempotency key. DSQL unique
+          index handling collapses them to one proposal and one execution.
+        </p>
+      </div>
+      <div className="row-count-grid">
+        {(infrastructure?.rowCounts ?? []).map((row) => (
+          <span key={row.table_name}>
+            <code>{row.table_name}</code>
+            <strong>{row.count}</strong>
+          </span>
+        ))}
+      </div>
+      <div className="transaction-groups">
+        {traceGroups(traces).slice(0, 8).map((group) => (
+          <article key={group.actionId}>
+            <strong>{shortId(group.actionId)}</strong>
+            <span>{group.rows.length} writes · 1 txn · retry-safe</span>
+            <code>{group.last?.summary ?? "No trace summary"}</code>
+          </article>
+        ))}
+      </div>
+    </section>
+  );
+}
+
 export function TetherConsole() {
   const queryClient = useQueryClient();
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [retryProof, setRetryProof] = useState<RetryProof | null>(null);
   const [mutationError, setMutationError] = useState<MutationError | null>(null);
+  const [activeView, setActiveView] = useState<ConsoleView>("cockpit");
   const dashboard = useQuery({
     queryKey: ["dashboard"],
     queryFn: () => fetchJson<DashboardData>("/v1/dashboard"),
     refetchInterval: 1000,
+  });
+  const policies = useQuery({
+    queryKey: ["policies"],
+    queryFn: () => fetchJson<PoliciesData>("/v1/policies"),
+    refetchInterval: 5000,
+  });
+  const infrastructure = useQuery({
+    queryKey: ["infrastructure"],
+    queryFn: () => fetchJson<InfrastructureData>("/v1/infrastructure"),
+    refetchInterval: 5000,
   });
   const data = dashboard.data;
 
@@ -966,48 +1327,39 @@ export function TetherConsole() {
     onError: onError("Simulate retry ×3"),
   });
 
-  if (dashboard.isLoading) return <Skeleton />;
+  function renderActiveView() {
+    if (activeView === "ledger") {
+      return (
+        <LedgerView versions={data?.versions ?? []} actions={actions} />
+      );
+    }
 
-  if (dashboard.isError) {
+    if (activeView === "audit") {
+      return (
+        <AuditTrailView
+          auditEvents={data?.auditEvents ?? []}
+          actions={actions}
+        />
+      );
+    }
+
+    if (activeView === "policies") {
+      return <PoliciesView policies={policies.data} />;
+    }
+
+    if (activeView === "infrastructure") {
+      return (
+        <InfrastructureView
+          infrastructure={infrastructure.data}
+          traces={data?.traces ?? []}
+          retryProof={retryProof}
+          retrying={retry.isPending}
+          onRetry={() => retry.mutate()}
+        />
+      );
+    }
+
     return (
-      <div className="console-shell">
-        <div className="error-state">
-          <strong>Dashboard failed to load.</strong>
-          <span>
-            {dashboard.error instanceof Error
-              ? dashboard.error.message
-              : "Check the local server and DSQL credentials."}
-          </span>
-        </div>
-      </div>
-    );
-  }
-
-  return (
-    <main className="console-shell">
-      <header className="console-header">
-        <div>
-          <h1>Tether</h1>
-          <span>The control plane for AI agents that act</span>
-        </div>
-        <div className="header-metrics" aria-label="Current ledger state">
-          <span>
-            v<strong>{data?.entity.version_number ?? "-"}</strong>
-          </span>
-          <span>
-            traces<strong>{data?.traces.length ?? 0}</strong>
-          </span>
-          <span>
-            actions<strong>{data?.actions.length ?? 0}</strong>
-          </span>
-        </div>
-      </header>
-      {mutationError ? (
-        <div className="toast" role="status">
-          <strong>{mutationError.source} failed.</strong>
-          <span>{mutationError.message}</span>
-        </div>
-      ) : null}
       <div className="console-grid">
         <AgentIntake
           actions={actions}
@@ -1036,6 +1388,55 @@ export function TetherConsole() {
         />
         <FlightRecorder traces={data?.traces ?? []} />
       </div>
+    );
+  }
+
+  if (dashboard.isLoading) return <Skeleton />;
+
+  if (dashboard.isError) {
+    return (
+      <div className="console-shell">
+        <div className="error-state">
+          <strong>Dashboard failed to load.</strong>
+          <span>
+            {dashboard.error instanceof Error
+              ? dashboard.error.message
+              : "Check the local server and DSQL credentials."}
+          </span>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <main className="console-shell">
+      <ConsoleSidebar activeView={activeView} onChange={setActiveView} />
+      <section className="console-main">
+        <header className="console-header">
+          <div>
+            <h1>{consoleViews.find((view) => view.key === activeView)?.label}</h1>
+            <span>The control plane for AI agents that act</span>
+          </div>
+          <div className="header-metrics" aria-label="Current ledger state">
+            <span>
+              v<strong>{data?.entity.version_number ?? "-"}</strong>
+            </span>
+            <span>
+              traces<strong>{data?.traces.length ?? 0}</strong>
+            </span>
+            <span>
+              actions<strong>{data?.actions.length ?? 0}</strong>
+            </span>
+          </div>
+        </header>
+        {mutationError ? (
+          <div className="toast" role="status">
+            <strong>{mutationError.source} failed.</strong>
+            <span>{mutationError.message}</span>
+          </div>
+        ) : null}
+        {renderActiveView()}
+      </section>
     </main>
   );
 }
