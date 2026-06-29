@@ -991,3 +991,56 @@ Next action:
 - `pnpm exec tsc --noEmit` passed.
 - `pnpm lint` passed with no warnings.
 - `pnpm db:connect` passed against Aurora DSQL from local env with `dsql:connected`.
+
+## 2026-06-29 - P0 Vercel Production Deploy + DSQL Verification
+
+### Deployment
+
+- Linked/created Vercel project `tether`.
+- Project ID: `prj_nc7jJJUqMtwyRGHifQIL8K6KdFVg`.
+- Team ID: `team_JvpWb34tpmOp3AX7hzaaf8br`.
+- Production deployment URL: `https://tether-pum7ew4to-anujs-projects-25b14a93.vercel.app`.
+- Production alias: `https://tether-teal.vercel.app`.
+- Set these environment variables for both Production and Preview:
+  - `AWS_ACCESS_KEY_ID`
+  - `AWS_SECRET_ACCESS_KEY`
+  - `AWS_REGION`
+  - `DSQL_HOST`
+  - `DSQL_DATABASE`
+  - `DSQL_USER`
+  - `DSQL_PORT`
+  - `DSQL_SSL`
+- `AWS_SESSION_TOKEN` was not set locally, so it was skipped.
+- Disabled Vercel SSO deployment protection for the project so judges can access the live URL and API routes.
+
+### Production DSQL Setup
+
+- Ran `pnpm db:migrate` against the production Aurora DSQL database.
+- Migration respected the existing DSQL rules:
+  - one DDL statement per transaction
+  - `CREATE INDEX ASYNC`
+  - index readiness verified after creation
+- Ran `pnpm db:seed` against the production Aurora DSQL database.
+
+### Production Verification
+
+- Verified `/console` loads at the deployed production URL with HTTP `200`.
+- Verified `/v1/demo/reset` restores the canonical v4 scenario:
+  - one canonical finance-gated proposal returns `approval_required`
+  - dashboard entity version returns to `v4`
+  - final reset leaves the dashboard with 3 proposal cards and the canonical action active
+- Verified the real production flow through Vercel serverless route handlers:
+  - propose a `$1,250` refund
+  - gate routes it to `finance`
+  - finance approval executes the action
+  - rollback appends a restoring version and creates a compensation action
+- Verified `/v1/actions/retry-demo` in production:
+  - `unique_action_count=1`
+  - `proposal_count=1`
+  - `execution_count=1`
+  - final status `executed`
+- Verified `/v1/infrastructure` reports:
+  - `status=connected`
+  - `region=us-east-1`
+  - `auth=IAM token auth`
+  - live row counts for `action_proposals`, `approvals`, `entity_versions`, `operation_traces`, and `audit_events`.
