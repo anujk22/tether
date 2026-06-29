@@ -186,10 +186,6 @@ function StationScene() {
         src={assets.right}
         width={538}
       />
-      <div className="hero-satellite" aria-hidden="true">
-        <span />
-        <span />
-      </div>
       <div className="planet planet-a" aria-hidden="true" />
       <div className="planet planet-b" aria-hidden="true" />
     </div>

@@ -1,7 +1,7 @@
 "use client";
 
 import type { CSSProperties, FormEvent } from "react";
-import { useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import Image from "next/image";
 import { useSearchParams } from "next/navigation";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
@@ -165,6 +165,50 @@ const defaultDraft: ComposerDraft = {
   customerHealth: "at_risk",
   riskLevel: "HIGH",
 };
+
+const GUIDED_DEMO_KEY = "tetherdemo2026";
+const GUIDED_STEP_MS = 6000;
+const FINANCE_USER_ID = "00000000-0000-4000-8000-000000000102";
+const SUPPORT_LEAD_USER_ID = "00000000-0000-4000-8000-000000000101";
+
+const guidedSteps = [
+  {
+    eyebrow: "Cold open",
+    title: "The disaster Tether prevents",
+    caption:
+      "An ungoverned AI agent issues a $1,250 refund. A retry bug fires it three times: $3,750 lost, no approval, no ledger, no undo.",
+  },
+  {
+    eyebrow: "Proposal + gate",
+    title: "Tether intercepts the write",
+    caption:
+      "The agent proposes the same $1,250 refund. Tether diffs v4, highlights the changed rows, and routes finance because amount > $500.",
+  },
+  {
+    eyebrow: "Idempotency proof",
+    title: "The triple-refund bug collapses to one",
+    caption:
+      "The cold-open retry bug runs for real: DSQL's unique index plus optimistic retries dedupe three attempts to exactly one proposal and one execution.",
+  },
+  {
+    eyebrow: "Human approval",
+    title: "Role enforcement, then finance approval",
+    caption:
+      "The finance-gated proposal is replayed from v4. A support lead approval is rejected by the API; finance approves, DSQL appends v5, and traces record the execution.",
+  },
+  {
+    eyebrow: "Rollback + compensation",
+    title: "Exact restore without erasing history",
+    caption:
+      "Rollback appends a restoring version; it does not overwrite history. Internal state returns to v4-equivalent values while the external payment reversal becomes a compensation action.",
+  },
+  {
+    eyebrow: "The proof",
+    title: "Live Aurora DSQL ledger",
+    caption:
+      "The proof view shows live row counts, IAM auth, region, and the lifecycle from Vercel route handlers to immutable Aurora DSQL tables.",
+  },
+] as const;
 
 const actingRoles: ActingRole[] = ["support_lead", "finance", "csm", "admin"];
 
@@ -1604,13 +1648,97 @@ function InfrastructureView({
   );
 }
 
+function GuidedDisasterPanel() {
+  return (
+    <section className="console-panel guided-disaster" aria-label="Ungoverned failure scenario">
+      <div className="guided-disaster-copy">
+        <span>Ungoverned agent path</span>
+        <h2>$3,750 lost before anyone can intervene.</h2>
+        <p>
+          The agent tries to issue one $1,250 refund. A retry bug fires it three
+          times against a downstream payment system. There is no approval gate, no
+          immutable proposal, and no exact rollback path.
+        </p>
+      </div>
+      <div className="guided-loss-stack" aria-label="Triple refund failure">
+        {[1, 2, 3].map((attempt) => (
+          <article key={attempt}>
+            <span>Attempt {attempt}</span>
+            <strong>$1,250 refund sent</strong>
+            <code>no idempotency key</code>
+          </article>
+        ))}
+      </div>
+      <div className="guided-disaster-total">
+        <span>Retry bug total</span>
+        <strong>$3,750</strong>
+        <p>No approval · no DSQL record · no undo</p>
+      </div>
+    </section>
+  );
+}
+
+function GuidedDemoOverlay({
+  stepIndex,
+  running,
+  status,
+  onNext,
+  onRestart,
+}: {
+  stepIndex: number;
+  running: boolean;
+  status: string | null;
+  onNext: () => void;
+  onRestart: () => void;
+}) {
+  const step = guidedSteps[stepIndex];
+
+  return (
+    <aside className="guided-demo-overlay" aria-live="polite">
+      <div className="guided-progress" aria-label="Guided demo progress">
+        {guidedSteps.map((item, index) => (
+          <span
+            aria-label={item.eyebrow}
+            data-active={index === stepIndex}
+            data-complete={index < stepIndex}
+            key={item.eyebrow}
+          />
+        ))}
+      </div>
+      <span>{step.eyebrow}</span>
+      <h2>{step.title}</h2>
+      <p>{step.caption}</p>
+      {status ? <code>{status}</code> : null}
+      <div className="guided-controls">
+        <button disabled={running} onClick={onRestart} type="button">
+          <RefreshCcw aria-hidden="true" size={14} />
+          Restart
+        </button>
+        <button disabled={running || stepIndex === guidedSteps.length - 1} onClick={onNext} type="button">
+          Next
+          <ArrowRight aria-hidden="true" size={14} />
+        </button>
+      </div>
+      <small>{running ? "Running real API step" : "Auto-advances every 6 seconds"}</small>
+    </aside>
+  );
+}
+
 export function TetherConsole() {
   const queryClient = useQueryClient();
   const searchParams = useSearchParams();
   const viewParam = searchParams.get("view");
+  const guidedMode =
+    searchParams.get("demo") === "guided" &&
+    searchParams.get("key") === GUIDED_DEMO_KEY;
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [retryProof, setRetryProof] = useState<RetryProof | null>(null);
   const [mutationError, setMutationError] = useState<MutationError | null>(null);
+  const [guidedStepIndex, setGuidedStepIndex] = useState(0);
+  const guidedExecutedStep = useRef(-1);
+  const guidedActionId = useRef<string | null>(null);
+  const [guidedRunning, setGuidedRunning] = useState(false);
+  const [guidedStatus, setGuidedStatus] = useState<string | null>(null);
   const [activeView, setActiveView] = useState<ConsoleView>(() =>
     viewFromSearchParam(viewParam),
   );
@@ -1648,6 +1776,15 @@ export function TetherConsole() {
     queryClient.invalidateQueries({
       queryKey: ["dashboard"],
     });
+
+  const invalidateProof = useCallback(
+    () =>
+      Promise.all([
+        queryClient.invalidateQueries({ queryKey: ["dashboard"] }),
+        queryClient.invalidateQueries({ queryKey: ["infrastructure"] }),
+      ]),
+    [queryClient],
+  );
 
   const onError = (source: string) => (error: Error) => {
     setMutationError({ source, message: error.message });
@@ -1733,7 +1870,243 @@ export function TetherConsole() {
     onError: onError("Simulate retry x3"),
   });
 
+  function nextGuidedStep() {
+    setGuidedStepIndex((current) =>
+      Math.min(current + 1, guidedSteps.length - 1),
+    );
+  }
+
+  async function restartGuidedDemo() {
+    setGuidedRunning(true);
+    setGuidedStatus("Resetting the production demo scenario.");
+
+    try {
+      const result = await fetchJson<{ action_id: string }>("/v1/demo/reset", {
+        method: "POST",
+      });
+
+      setRetryProof(null);
+      guidedActionId.current = null;
+      setSelectedId(result.action_id);
+      setActiveView("cockpit");
+      setActingRole("finance");
+      setMutationError(null);
+      guidedExecutedStep.current = -1;
+      setGuidedStepIndex(0);
+      void invalidateProof();
+    } catch (error) {
+      setMutationError({
+        source: "Guided demo restart",
+        message: error instanceof Error ? error.message : "Unknown restart error",
+      });
+    } finally {
+      setGuidedRunning(false);
+    }
+  }
+
+  useEffect(() => {
+    if (!guidedMode || guidedRunning || guidedStepIndex === guidedSteps.length - 1) {
+      return;
+    }
+
+    const timer = window.setTimeout(nextGuidedStep, GUIDED_STEP_MS);
+
+    return () => window.clearTimeout(timer);
+  }, [guidedMode, guidedRunning, guidedStepIndex]);
+
+  useEffect(() => {
+    if (!guidedMode || guidedExecutedStep.current === guidedStepIndex) {
+      return;
+    }
+
+    let cancelled = false;
+
+    async function runGuidedStep() {
+      guidedExecutedStep.current = guidedStepIndex;
+      setGuidedRunning(true);
+      setGuidedStatus(null);
+
+      try {
+        if (guidedStepIndex === 0) {
+          setActiveView("cockpit");
+          setGuidedStatus("Problem framing only. No bad data is written.");
+          return;
+        }
+
+        if (guidedStepIndex === 1) {
+          setActiveView("cockpit");
+          setRetryProof(null);
+          const proposal = buildProposalFromDraft(defaultDraft);
+          proposal.idempotency_key = `guided-refund-${Date.now()}`;
+          await fetchJson<{ action_id: string }>("/v1/demo/reset", {
+            method: "POST",
+          });
+          const result = await fetchJson<{
+            action_id: string;
+            status: string;
+            required_approver_role: string | null;
+          }>("/v1/actions/propose", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(proposal),
+          });
+
+          if (cancelled) return;
+          guidedActionId.current = result.action_id;
+          setSelectedId(result.action_id);
+          void invalidateProof();
+          setGuidedStatus(
+            `Proposal ${shortId(result.action_id)} gated to ${roleLabel(
+              result.required_approver_role,
+            )}.`,
+          );
+          return;
+        }
+
+        if (guidedStepIndex === 2) {
+          const result = await fetchJson<RetryProof>("/v1/actions/retry-demo", {
+            method: "POST",
+          });
+
+          if (cancelled) return;
+          setRetryProof(result);
+          if (guidedActionId.current) setSelectedId(guidedActionId.current);
+          setActiveView("cockpit");
+          void invalidateProof();
+          setGuidedStatus(
+            `${result.attempts.length} attempts -> ${result.proposal_count} proposal -> ${result.execution_count} execution.`,
+          );
+          return;
+        }
+
+        if (guidedStepIndex === 3) {
+          setActiveView("cockpit");
+          setActingRole("support_lead");
+          const proposal = buildProposalFromDraft(defaultDraft);
+          proposal.idempotency_key = `guided-approval-${Date.now()}`;
+          await fetchJson<{ action_id: string }>("/v1/demo/reset", {
+            method: "POST",
+          });
+          const replayed = await fetchJson<{ action_id: string }>(
+            "/v1/actions/propose",
+            {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify(proposal),
+            },
+          );
+          const actionId = replayed.action_id;
+          guidedActionId.current = actionId;
+          setSelectedId(actionId);
+          void invalidateProof();
+
+          let rejection = "approval blocked";
+          let wrongRoleSucceeded = false;
+          try {
+            await fetchJson(`/v1/actions/${actionId}/decision`, {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({
+                decision: "approve",
+                note: "Guided demo wrong-role proof.",
+                approver_user_id: SUPPORT_LEAD_USER_ID,
+                acting_role: "support_lead",
+              }),
+            });
+            wrongRoleSucceeded = true;
+          } catch (error) {
+            rejection = error instanceof Error ? error.message : rejection;
+          }
+
+          if (wrongRoleSucceeded) {
+            throw new Error("Wrong-role approval unexpectedly succeeded.");
+          }
+
+          setActingRole("finance");
+          const approval = await fetchJson<{ status: string }>(
+            `/v1/actions/${actionId}/decision`,
+            {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({
+                decision: "approve",
+                note: "Guided demo finance approval.",
+                approver_user_id: FINANCE_USER_ID,
+                acting_role: "finance",
+              }),
+            },
+          );
+
+          if (cancelled) return;
+          setSelectedId(actionId);
+          void invalidateProof();
+          setGuidedStatus(
+            `Support lead rejected: ${rejection} Finance approval wrote ${approval.status}.`,
+          );
+          return;
+        }
+
+        if (guidedStepIndex === 4) {
+          const actionId = guidedActionId.current;
+          if (!actionId) throw new Error("Guided proposal has not been created.");
+
+          setActiveView("cockpit");
+          const result = await fetchJson<{
+            status: string;
+            restored_version_id: string | null;
+            compensation_action_id: string | null;
+          }>(`/v1/actions/${actionId}/rollback`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              performed_by_user_id: FINANCE_USER_ID,
+              reason: "Guided demo rollback.",
+            }),
+          });
+
+          if (cancelled) return;
+          setSelectedId(actionId);
+          void invalidateProof();
+          setGuidedStatus(
+            `${humanLabel(result.status)}. Restore=${shortId(
+              result.restored_version_id,
+            )}; compensation=${shortId(result.compensation_action_id)}.`,
+          );
+          return;
+        }
+
+        if (guidedStepIndex === 5) {
+          setActiveView("infrastructure");
+          void invalidateProof();
+          setGuidedStatus("Live production proof view.");
+        }
+      } catch (error) {
+        if (cancelled) return;
+        const message =
+          error instanceof Error ? error.message : "Unknown guided demo error";
+        setMutationError({ source: "Guided demo", message });
+        setGuidedStatus(message);
+      } finally {
+        if (!cancelled) setGuidedRunning(false);
+      }
+    }
+
+    void runGuidedStep();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [
+    guidedMode,
+    guidedStepIndex,
+    invalidateProof,
+  ]);
+
   function renderActiveView() {
+    if (guidedMode && guidedStepIndex === 0) {
+      return <GuidedDisasterPanel />;
+    }
+
     if (activeView === "ledger") {
       return (
         <LedgerView versions={data?.versions ?? []} actions={actions} />
@@ -1836,6 +2209,15 @@ export function TetherConsole() {
         ) : null}
         {renderActiveView()}
       </section>
+      {guidedMode ? (
+        <GuidedDemoOverlay
+          stepIndex={guidedStepIndex}
+          running={guidedRunning}
+          status={guidedStatus}
+          onNext={nextGuidedStep}
+          onRestart={restartGuidedDemo}
+        />
+      ) : null}
     </main>
   );
 }

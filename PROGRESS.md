@@ -1084,3 +1084,55 @@ Next action:
   - `/console?view=infrastructure` `1920x1080`
   - `/` `390x844`
   - `/console?view=infrastructure` `390x844`
+
+## 2026-06-29 - P1 Hidden Guided Demo Mode
+
+### Changes
+
+- Added hidden guided demo access at:
+  - `/console?demo=guided&key=tetherdemo2026`
+- The route is not linked from landing nav, console nav, footer, or visible UI.
+- Added a recording overlay with:
+  - six-step progress
+  - short narration-ready captions
+  - 6-second auto advance
+  - manual `Next`
+  - `Restart`, which calls `/v1/demo/reset`
+- Added a visually distinct cold-open panel that writes no bad data:
+  - ungoverned `$1,250` refund
+  - retry bug fires three times
+  - `$3,750` lost
+  - no approval, no DSQL record, no undo
+- The guided sequence orchestrates real existing APIs:
+  - `/v1/demo/reset`
+  - `/v1/actions/propose`
+  - `/v1/actions/retry-demo`
+  - `/v1/actions/:id/decision`
+  - `/v1/actions/:id/rollback`
+  - `/v1/infrastructure`
+- The retry proof step runs the real retry-demo endpoint and shows three attempts collapsed to one proposal and one execution.
+- The human approval step replays a clean finance-gated proposal from v4, attempts a wrong-role support-lead approval, shows the API rejection in the overlay, then approves as finance.
+- The approval step shows active version v5; rollback then appends the restoring v6 and compensation action.
+- The final step lands on the Aurora DSQL proof view with live row counts, IAM auth, region, and the production data path.
+- Carried the current visual composition polish into this phase:
+  - removed the handmade hero satellite decoration
+  - shifted the landing station scene left on desktop/wide screens
+  - kept the console shell on the darker page-gradient treatment while preserving matching card/sidebar surfaces
+- No backend lifecycle logic was changed.
+
+### Verification
+
+- `pnpm exec tsc --noEmit` passed.
+- `pnpm lint` passed with no warnings.
+- Browser QA verified the hidden route is reachable only by URL/key.
+- Browser QA verified auto-advance from the cold open to `Proposal + gate` after the 6-second timer.
+- Browser QA manually stepped through the full guided sequence:
+  - cold-open disaster panel visible
+  - proposal/gate step created a real finance-gated proposal
+  - retry proof returned `3 attempts -> 1 proposal -> 1 execution`
+  - wrong-role approval was rejected, then finance approval executed
+  - approval step showed v5
+  - rollback step showed v6
+  - final proof view showed `Infrastructure / Aurora DSQL`, live row counts, and truth boundary copy
+- Guided QA screenshots were captured under `/tmp/tether-guided-local-1782755477052/`.
+- Ran `pnpm demo:reset` after QA to restore the clean canonical local scenario.
