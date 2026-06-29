@@ -811,3 +811,98 @@ Next action:
 
 - `pnpm lint` still has the pre-existing unused import warning in the old `/product` cockpit.
 - The working tree still contains unrelated pre-existing marketing visual edits in `src/app/globals.css` and `src/components/tether/landing-page.tsx`.
+
+## 2026-06-29 - Console Redesign, Honest Nav, Responsive QA
+
+### Changes
+
+- Reworked `/console` into the Action Cockpit direction from the attached mockup:
+  - fixed left product sidebar with exactly `Action Cockpit`, `Ledger`, `Audit Trail`, `Policies`, and `Aurora DSQL`
+  - Back to site link points to `/`
+  - top mission strip shows real action, risk, approval, trace, and active version counts
+  - architecture path reads `Agent proposal -> Policy gate -> Human approval -> DSQL ledger -> Enterprise systems`
+  - Agent Intake queue shows three real DSQL-backed proposal records for the `$1,250`, `$475`, and `$50` story cards
+  - Policy Gate now tells the lifecycle, summary, evidence, route, and immutable snapshot diff story
+  - Decision panel shows role enforcement, approve/rollback outcomes, contextual fields, and retry x3
+  - DSQL Flight Recorder is promoted with real `operation_traces`, REC indicator, and DSQL proof chips
+- Updated demo seed/reset data:
+  - seeded real `SupportAgent-02`, `SupportAgent-04`, and `SupportAgent-07` rows
+  - reset creates the extra queue cards as schema-compatible proposal, trace, and audit rows without changing core lifecycle logic or mutating the active v4 entity
+- Cleaned navigation:
+  - homepage nav now contains only `How it works` -> `#how-it-works`, `Architecture` -> `#architecture`, `Open Console` -> `/console`, and `Book a demo` -> `/console`
+  - removed homepage `Product`, `Solutions`, `Docs`, `Pricing`, `Customers`, `Company`, `Sign in`, and fake dropdown arrows
+  - footer now links only to the same real anchors/routes and no longer has dead footer columns or a fake newsletter input
+  - secondary info pages now link only to `Home` and `Launch Console`
+  - stale `/product` now redirects to `/console`; the orphaned old `ProductCockpit` component was removed
+- Responsive fixes:
+  - landing shell uses clamp-based gutters and grows to a 1560px premium max on ultrawide screens
+  - landing hero, feature band, architecture preview, launch card, and footer align to the same shell
+  - console uses a full app shell with sticky sidebar on desktop and stacked nav below 1360px
+  - cockpit columns use min/max grid tracks; dense diff/trace rows scroll internally when needed
+  - mobile teaser diff stacks at 390px to avoid clipping
+
+### Verification
+
+- `pnpm demo:reset` passed.
+- Route-level QA through the running Next app passed:
+  - reset demo restored active v4 and three queue cards
+  - `/v1/actions/propose` accepted a real proposal
+  - support lead role was blocked from finance approval
+  - finance approval succeeded and executed
+  - rollback succeeded and created compensation
+  - dashboard showed compensation and compensation traces
+  - `/v1/infrastructure` returned real DSQL row counts
+  - `/v1/actions/retry-demo` returned one proposal and one execution
+- `pnpm exec tsc --noEmit` passed.
+- `pnpm lint` passed with no warnings.
+- Browser QA passed for `/` and `/console` at:
+  - `1440x900`
+  - `1536x864`
+  - `1728x1117`
+  - `1920x1080`
+  - `2560x1440`
+  - `390x1200`
+- Aurora DSQL tab was checked at `1440x900`; it displayed real row counts including `operation_traces` and transaction groups.
+- Screenshots were captured in `artifacts/landing-*.png`, `artifacts/console-*.png`, and `artifacts/console-aurora-dsql-1440x900.png`.
+
+### Current State
+
+- Existing dev server is running at `http://localhost:3000`.
+- Demo database has been reset back to the clean finance-approval cockpit state.
+
+## 2026-06-29 - Sidebar Landing + Palette/Scaling Correction
+
+### Changes
+
+- Promoted the console sidebar into a shared Tether navigation component used by both `/` and `/console`.
+- Landing page now has the left control-plane panel at the far left on desktop/wide screens; the old top navbar was removed entirely.
+- Remaining landing navigation is honest:
+  - sidebar links open real console views: `/console`, `/console?view=ledger`, `/console?view=audit`, `/console?view=policies`, `/console?view=infrastructure`
+  - hero/launch CTAs route to `/console` or the real `#architecture` section
+  - footer links remain `#how-it-works`, `#architecture`, `/console`, and `/console`
+- Neutralized stale SaaS routes by redirecting `/product`, `/docs`, `/pricing`, and `/solutions` to `/console`.
+- Removed the now-unused secondary info-page component.
+- Shifted console/sidebar palette from blue-slate to the reference-style black/graphite palette with amber, green, and purple reserved for state.
+- Updated responsive layout:
+  - landing shell now expands up to 1840px, and 1960px on very wide screens
+  - landing hero typography uses a tighter clamp so `for AI agents` stays together at 1440px
+  - console sidebar remains fixed/sticky on desktop and only collapses for mobile widths
+  - console main grid uses available desktop/widescreen width up to 1760px
+  - dense diff and Flight Recorder rows stack on mobile to prevent body-level horizontal overflow
+
+### Verification
+
+- `pnpm exec tsc --noEmit` passed.
+- `pnpm lint` passed with no warnings.
+- Browser QA passed for `/` and `/console` at:
+  - `1440x900`
+  - `1536x864`
+  - `1728x1117`
+  - `1920x1080`
+  - `2560x1440`
+  - `390x844`
+- Final viewport metrics showed no body horizontal overflow at every checked size.
+- Final browser metrics showed no landing top-nav links, no fake product/pricing/docs/solutions/customer/company links, and sidebar items exactly `Action Cockpit`, `Ledger`, `Audit Trail`, `Policies`, `Aurora DSQL`.
+- `/console?view=ledger` opened the Ledger view and marked `Ledger` active in the sidebar.
+- Node fetch verified `/product`, `/docs`, `/pricing`, and `/solutions` return `307` redirects to `/console`.
+- Final screenshots were captured under `/tmp/tether-responsive-qa-final-1782707147/`.

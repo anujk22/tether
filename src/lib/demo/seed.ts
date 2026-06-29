@@ -71,21 +71,36 @@ async function upsertUsers(client: PoolClient): Promise<void> {
   }
 }
 
-async function upsertAgent(client: PoolClient): Promise<void> {
-  await client.query(
-    `INSERT INTO agents (id, org_id, name, description)
-     VALUES ($1, $2, $3, $4)
-     ON CONFLICT (id) DO UPDATE SET
-       org_id = EXCLUDED.org_id,
-       name = EXCLUDED.name,
-       description = EXCLUDED.description`,
+async function upsertAgents(client: PoolClient): Promise<void> {
+  const agents = [
     [
-      DEMO_IDS.agent,
-      DEMO_IDS.org,
-      "SupportAgent-04",
-      "Scripted support agent fixture for the Tether control-plane demo.",
+      DEMO_IDS.agents.support02,
+      "SupportAgent-02",
+      "Low-risk support agent fixture for the Tether control-plane demo.",
     ],
-  );
+    [
+      DEMO_IDS.agents.support04,
+      "SupportAgent-04",
+      "Finance-gated support agent fixture for the Tether control-plane demo.",
+    ],
+    [
+      DEMO_IDS.agents.support07,
+      "SupportAgent-07",
+      "Support-lead review agent fixture for the Tether control-plane demo.",
+    ],
+  ];
+
+  for (const [id, name, description] of agents) {
+    await client.query(
+      `INSERT INTO agents (id, org_id, name, description)
+       VALUES ($1, $2, $3, $4)
+       ON CONFLICT (id) DO UPDATE SET
+         org_id = EXCLUDED.org_id,
+         name = EXCLUDED.name,
+         description = EXCLUDED.description`,
+      [id, DEMO_IDS.org, name, description],
+    );
+  }
 }
 
 async function upsertPolicy(client: PoolClient): Promise<void> {
@@ -284,7 +299,7 @@ export async function seedDemoData(): Promise<void> {
   await writeTransaction(async (client) => {
     await upsertOrganization(client);
     await upsertUsers(client);
-    await upsertAgent(client);
+    await upsertAgents(client);
     await upsertPolicy(client);
     await upsertActionTypes(client);
     await upsertApprovalRules(client);

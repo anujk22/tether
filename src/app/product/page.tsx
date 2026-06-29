@@ -1,5 +1,5 @@
-import { ProductCockpit } from "@/components/tether/product-cockpit";
+import { redirect } from "next/navigation";
 
 export default function ProductPage() {
-  return <ProductCockpit />;
+  redirect("/console");
 }

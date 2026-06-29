@@ -2,11 +2,14 @@
 
 import type { CSSProperties, FormEvent } from "react";
 import { useMemo, useState } from "react";
+import Image from "next/image";
+import { useSearchParams } from "next/navigation";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { AnimatePresence, motion, useReducedMotion } from "motion/react";
 import {
   AlertTriangle,
   Activity,
+  ArrowRight,
   BookOpen,
   Check,
   CheckCircle2,
@@ -19,12 +22,19 @@ import {
   Network,
   RefreshCcw,
   RotateCcw,
+  Server,
   ShieldCheck,
   Split,
   Undo2,
+  UserRound,
   XCircle,
 } from "lucide-react";
 
+import {
+  ConsoleSidebar,
+  consoleViews,
+  type ConsoleView,
+} from "@/components/tether/console-sidebar";
 import { scriptedRefundProposal } from "@/lib/demo/scripted-proposal";
 
 type JsonRecord = Record<string, unknown>;
@@ -141,7 +151,6 @@ type MutationError = {
   message: string;
 };
 
-type ConsoleView = "cockpit" | "ledger" | "audit" | "policies" | "infrastructure";
 type ActingRole = "support_lead" | "finance" | "csm" | "admin";
 
 type ComposerDraft = {
@@ -159,18 +168,6 @@ const defaultDraft: ComposerDraft = {
   customerHealth: "at_risk",
   riskLevel: "HIGH",
 };
-
-const consoleViews: Array<{
-  key: ConsoleView;
-  label: string;
-  icon: typeof Clock3;
-}> = [
-  { key: "cockpit", label: "Action Cockpit", icon: Activity },
-  { key: "ledger", label: "Ledger", icon: History },
-  { key: "audit", label: "Audit Trail", icon: ListChecks },
-  { key: "policies", label: "Policies", icon: BookOpen },
-  { key: "infrastructure", label: "Aurora DSQL", icon: Network },
-];
 
 const actingRoles: ActingRole[] = ["support_lead", "finance", "csm", "admin"];
 
@@ -308,24 +305,6 @@ function jsonPreview(value: unknown): string {
   return JSON.stringify(value, null, 2);
 }
 
-function evidenceItems(action: ActionSummary): Array<{
-  label: string;
-  value: string;
-  source: string;
-}> {
-  return action.evidence
-    .filter((item): item is { label: string; value: string; source: string } =>
-      Boolean(
-        item &&
-          typeof item === "object" &&
-          "label" in item &&
-          "value" in item &&
-          "source" in item,
-      ),
-    )
-    .slice(0, 3);
-}
-
 function amountFromDraft(draft: ComposerDraft): number {
   const amount = Number(draft.refundAmount);
 
@@ -448,13 +427,113 @@ function traceState(trace: TraceRow): string {
   return "gated";
 }
 
-function StatusPill({ status }: { status: string }) {
+function actionAmount(action: ActionSummary | null | undefined): number {
+  const amount = action?.proposed_changes.refund_amount;
+
+  return typeof amount === "number" ? amount : 0;
+}
+
+function roleFromGate(action: ActionSummary | null | undefined): string | null {
+  const role = action?.gate.required_approver_role;
+
+  return typeof role === "string" ? role : null;
+}
+
+function actionTier(action: ActionSummary | null | undefined): string {
+  return displayValue(
+    action?.proposed_changes.tier ??
+      action?.proposed_changes.customer_tier ??
+      action?.prior_state.tier ??
+      "enterprise",
+  );
+}
+
+function actionHealth(action: ActionSummary | null | undefined): string {
+  return displayValue(
+    action?.proposed_changes.customer_health ??
+      action?.prior_state.customer_health ??
+      "stable",
+  );
+}
+
+function proposedActionCopy(action: ActionSummary | null | undefined): string {
+  if (!action) return "No action selected";
+  const actionName = action.action_type_key.replaceAll("_", " ");
+  const amount = actionAmount(action);
+
+  return amount ? `${actionName} ${money(amount)}` : actionName;
+}
+
+function systemsForAction(action: ActionSummary | null | undefined): string {
+  if (!action) return "Payment, Support, CRM";
+  if (action.action_type_key === "refund_reversal") return "Payment";
+
+  return "Payments, Support, CRM";
+}
+
+function gateDecision(action: ActionSummary | null | undefined): string {
+  const decision = action?.gate.decision;
+
+  return typeof decision === "string" ? decision : "pending";
+}
+
+function statusDisplay(action: ActionSummary): { status: string; label: string } {
+  if (gateDecision(action) === "auto_approve" && action.status === "executed") {
+    return { status: "approved", label: "Auto-approved" };
+  }
+
+  return {
+    status: action.status,
+    label: stateLabels[action.status] ?? action.status.replaceAll("_", " "),
+  };
+}
+
+function sortQueueActions(actions: ActionSummary[], selectedId: string | null) {
+  const riskRank: Record<string, number> = {
+    HIGH: 0,
+    MEDIUM: 1,
+    LOW: 2,
+  };
+
+  return [...actions].sort((left, right) => {
+    if (left.id === selectedId) return -1;
+    if (right.id === selectedId) return 1;
+
+    return (
+      (riskRank[left.risk_level] ?? 3) - (riskRank[right.risk_level] ?? 3) ||
+      actionAmount(right) - actionAmount(left) ||
+      new Date(right.created_at).getTime() - new Date(left.created_at).getTime()
+    );
+  });
+}
+
+function roleIsAuthorized(action: ActionSummary | null, role: ActingRole): boolean {
+  const requiredRole = roleFromGate(action);
+
+  return !requiredRole || requiredRole === role;
+}
+
+function roleLabel(role: string | null | undefined): string {
+  return role ? role.replaceAll("_", " ") : "none";
+}
+
+function viewFromSearchParam(value: string | null): ConsoleView {
+  return consoleViews.find((view) => view.key === value)?.key ?? "cockpit";
+}
+
+function StatusPill({
+  status,
+  label,
+}: {
+  status: string;
+  label?: string;
+}) {
   const Icon = stateIcon[status] ?? Clock3;
 
   return (
     <span className="status-pill" style={stateStyle(status)}>
       <Icon aria-hidden="true" size={14} />
-      {stateLabels[status] ?? status}
+      {label ?? stateLabels[status] ?? status}
     </span>
   );
 }
@@ -479,12 +558,132 @@ function PanelTitle({
   );
 }
 
+function ArchitectureBreadcrumb() {
+  const steps = [
+    { label: "Agent proposal", icon: Activity },
+    { label: "Policy gate", icon: ShieldCheck },
+    { label: "Human approval", icon: UserRound },
+    { label: "DSQL ledger", icon: Database },
+    { label: "Enterprise systems", icon: Server },
+  ];
+
+  return (
+    <div className="architecture-strip" aria-label="Governed action path">
+      {steps.map((step, index) => {
+        const Icon = step.icon;
+
+        return (
+          <div className="architecture-step" key={step.label}>
+            <Icon aria-hidden="true" size={17} />
+            <span>{step.label}</span>
+            {index < steps.length - 1 ? (
+              <ArrowRight aria-hidden="true" size={18} />
+            ) : null}
+          </div>
+        );
+      })}
+    </div>
+  );
+}
+
+function MissionStrip({
+  activeView,
+  data,
+  selectedAction,
+  actingRole,
+  onRoleChange,
+}: {
+  activeView: ConsoleView;
+  data: DashboardData | undefined;
+  selectedAction: ActionSummary | null;
+  actingRole: ActingRole;
+  onRoleChange: (role: ActingRole) => void;
+}) {
+  const approvalsRequired =
+    data?.actions.filter((action) => action.status === "approval_required").length ?? 0;
+  const activeVersion = data?.entity.version_number ?? "-";
+  const selectedAmount = actionAmount(selectedAction);
+  const title = consoleViews.find((view) => view.key === activeView)?.label ?? "Action Cockpit";
+  const subtitle =
+    activeView === "cockpit"
+      ? "Governed write path for AI agents acting across support, payments, and CRM."
+      : "Real Aurora DSQL state behind the governed write path.";
+  const kpis = [
+    {
+      value: data?.actions.length ?? 0,
+      label: "governed actions",
+      tone: "neutral",
+    },
+    {
+      value: money(selectedAmount),
+      label: "amount at risk",
+      tone: "approval",
+    },
+    {
+      value: approvalsRequired,
+      label: "approvals required",
+      tone: "approval",
+    },
+    {
+      value: data?.traces.length ?? 0,
+      label: "DSQL traces",
+      tone: "neutral",
+    },
+    {
+      value: `v${activeVersion}`,
+      label: "active state",
+      tone: "approved",
+    },
+  ];
+
+  return (
+    <header className="console-header">
+      <div className="mission-copyblock">
+        <h1>{title}</h1>
+        <p>{subtitle}</p>
+      </div>
+      <div className="mission-kpis" aria-label="Console metrics">
+        {kpis.map((kpi) => (
+          <div className="mission-kpi" data-tone={kpi.tone} key={kpi.label}>
+            <strong>{kpi.value}</strong>
+            <span>{kpi.label}</span>
+          </div>
+        ))}
+      </div>
+      <ArchitectureBreadcrumb />
+      <div className="header-metrics" aria-label="Current ledger state">
+        <label className="role-selector">
+          <span>Acting as</span>
+          <select
+            value={actingRole}
+            onChange={(event) => onRoleChange(event.currentTarget.value as ActingRole)}
+          >
+            {actingRoles.map((role) => (
+              <option key={role} value={role}>
+                {role.replaceAll("_", " ")}
+              </option>
+            ))}
+          </select>
+        </label>
+        <span>
+          v<strong>{activeVersion}</strong>
+        </span>
+        <span>
+          traces<strong>{data?.traces.length ?? 0}</strong>
+        </span>
+        <span>
+          actions<strong>{data?.actions.length ?? 0}</strong>
+        </span>
+      </div>
+    </header>
+  );
+}
+
 function AgentIntake({
   actions,
   selectedId,
   onSelect,
   onPropose,
-  onPreset,
   onReset,
   proposing,
   resetting,
@@ -493,12 +692,12 @@ function AgentIntake({
   selectedId: string | null;
   onSelect: (id: string) => void;
   onPropose: (draft: ComposerDraft) => void;
-  onPreset: () => void;
   onReset: () => void;
   proposing: boolean;
   resetting: boolean;
 }) {
   const [draft, setDraft] = useState<ComposerDraft>(defaultDraft);
+  const queueActions = sortQueueActions(actions, selectedId);
 
   function updateDraft<K extends keyof ComposerDraft>(
     key: K,
@@ -517,15 +716,14 @@ function AgentIntake({
 
   return (
     <section className="console-panel intake-panel" aria-labelledby="agent-intake">
-      <PanelTitle icon={Split} title="Agent Intake" aside={`${actions.length} actions`} />
+      <PanelTitle icon={Split} title="Agent Intake" aside="operational queue" />
       <form className="action-composer" onSubmit={submitAction}>
         <div className="composer-heading">
-          <span>New action</span>
+          <span>New governed action</span>
           <button
             disabled={proposing || resetting}
             onClick={() => {
               setDraft(defaultDraft);
-              onPreset();
             }}
             type="button"
           >
@@ -549,7 +747,7 @@ function AgentIntake({
         </label>
         <div className="composer-row">
           <label>
-            <span>Refund amount</span>
+            <span>Refund amount (USD)</span>
             <input
               min="0"
               step="1"
@@ -619,37 +817,59 @@ function AgentIntake({
         </button>
       </form>
       <div className="action-list" aria-labelledby="agent-intake">
-        {actions.length ? (
-          actions.map((action) => (
-            <button
-              aria-pressed={selectedId === action.id}
-              className="action-card"
-              data-selected={selectedId === action.id}
-              key={action.id}
-              onClick={() => onSelect(action.id)}
-              type="button"
-            >
-              <span className="action-card-top">
-                <span>{action.agent_name}</span>
-                <StatusPill status={action.status} />
-              </span>
-              <span className="action-card-main">
-                <strong>
-                  <span>$</span>
-                  {money(action.proposed_changes.refund_amount).replace("$", "")}
-                </strong>
-                <span>{action.action_type_key.replaceAll("_", " ")}</span>
-              </span>
-              <span className="action-card-meta">
-                <span>{action.risk_level}</span>
-                <code>{shortId(action.id)}</code>
-              </span>
-            </button>
-          ))
+        {queueActions.length ? (
+          queueActions.map((action) => {
+            const display = statusDisplay(action);
+
+            return (
+              <button
+                aria-pressed={selectedId === action.id}
+                className="action-card"
+                data-risk={action.risk_level.toLowerCase()}
+                data-selected={selectedId === action.id}
+                key={action.id}
+                onClick={() => onSelect(action.id)}
+                type="button"
+              >
+                <span className="action-card-top">
+                  <span className="agent-identity">
+                    <Image
+                      alt=""
+                      height={587}
+                      src="/tether-assets/AstronautForwardMiniIconTiny.png"
+                      width={507}
+                    />
+                    <span>
+                      <strong>{action.agent_name}</strong>
+                      <em>{action.action_type_key.replaceAll("_", " ")}</em>
+                    </span>
+                  </span>
+                  <StatusPill status={display.status} label={display.label} />
+                </span>
+                <span className="action-card-main">
+                  <strong>
+                    <span>$</span>
+                    {money(actionAmount(action)).replace("$", "")}
+                  </strong>
+                  <span>
+                    {actionTier(action)}
+                    <em>{actionHealth(action)}</em>
+                  </span>
+                </span>
+                <span className="action-card-meta">
+                  <span>{action.risk_level}</span>
+                  <code>ID: {shortId(action.id)}</code>
+                </span>
+              </button>
+            );
+          })
         ) : (
           <div className="empty-state">Queue clear — propose an action to begin.</div>
         )}
       </div>
+      <a className="view-all-link" href="#flight-recorder">
+        View all proposals <ArrowRight aria-hidden="true" size={14} />
+      </a>
       <div className="intake-controls">
         <button
           className="secondary-control"
@@ -679,6 +899,42 @@ function PolicyGate({
   const rows = action ? diffRows(action) : [];
   const activeVersion = versions.find((version) => version.is_active);
   const isRollback = action?.status === "rolled_back" || action?.status === "compensated";
+  const requiredRole = roleFromGate(action);
+  const amount = actionAmount(action);
+  const reasonChips = action
+    ? [
+        amount > 500
+          ? "Refund amount exceeds auto-approval threshold"
+          : "Refund amount fits policy threshold",
+        `Customer tier is ${actionTier(action)}`,
+        `Customer health is ${actionHealth(action)}`,
+        action.reversibility_class === "IRREVERSIBLE_EXTERNAL"
+          ? "External financial action requires compensation path"
+          : "Internal state can be restored exactly",
+        "Agent has no direct write access",
+      ]
+    : [];
+  const summaryItems = [
+    ["Proposed action", proposedActionCopy(action)],
+    ["Agent", action?.agent_name ?? "No agent"],
+    ["Customer", String(action?.prior_state.customer_id ?? entity?.external_ref ?? "-")],
+    ["Systems affected", systemsForAction(action)],
+    ["Risk", action?.risk_level ?? "-"],
+    ["Current status", action ? stateLabels[action.status] ?? action.status : "-"],
+    ["Required approver", roleLabel(requiredRole)],
+    ["Active version", `v${activeVersion?.version_number ?? entity?.version_number ?? "-"}`],
+  ];
+  const routeItems = [
+    ["Policy route", String(action?.gate.policy_title ?? "Refund authority")],
+    ["Required role", roleLabel(requiredRole)],
+    ["Decision mode", gateDecision(action).replaceAll("_", " ")],
+    [
+      "Reversibility",
+      action?.reversibility_class === "IRREVERSIBLE_EXTERNAL"
+        ? "compensation required"
+        : "exact rollback available",
+    ],
+  ];
 
   return (
     <section
@@ -733,51 +989,81 @@ function PolicyGate({
           );
         })}
       </div>
-      <div className="policy-strip">
-        <motion.div
-          animate={
-            !reducedMotion && action?.status === "approval_required"
-              ? { borderColor: ["var(--state-approval)", "var(--border-subtle)"] }
-              : undefined
-          }
-          transition={{ duration: 0.7 }}
-        >
-          <span>Matched policy</span>
-          <strong>{String(action?.gate.policy_title ?? "Refund authority")}</strong>
-        </motion.div>
-        <div>
-          <span>Required role</span>
-          <strong>
-            {String(action?.gate.required_approver_role ?? "none").replaceAll("_", " ")}
-          </strong>
-        </div>
-        <div className="version-card">
-          <span>Active version</span>
-          <strong>
-            v{activeVersion?.version_number ?? entity?.version_number ?? "-"}
-            {isRollback ? <em> restoring v4</em> : null}
-          </strong>
+      <div className="gate-section action-summary-section">
+        <h3>Action summary</h3>
+        <div className="summary-grid">
+          {summaryItems.map(([label, value]) => (
+            <div key={label}>
+              <span>{label}</span>
+              <strong>{value}</strong>
+            </div>
+          ))}
         </div>
       </div>
-      <div className="diff-table" aria-label="Before and after state diff">
-        {action ? (
-          rows.map((row) => (
-            <motion.div
-              className="diff-row"
-              data-changed={row.changed}
-              key={row.key}
-              layout
-              style={stateStyle(action.status, "token")}
-            >
-              <code>{row.key}</code>
-              <span>{displayValue(row.before)}</span>
-              <span aria-hidden="true">→</span>
-              <strong>{displayValue(row.after)}</strong>
-            </motion.div>
-          ))
-        ) : (
-          <div className="empty-state">No action selected.</div>
-        )}
+      <motion.div
+        className="gate-section"
+        animate={
+          !reducedMotion && action?.status === "approval_required"
+            ? { borderColor: ["var(--state-approval)", "var(--border-subtle)"] }
+            : undefined
+        }
+        transition={{ duration: 0.7 }}
+      >
+        <h3>Why Tether gated this</h3>
+        <div className="evidence-chip-grid">
+          {reasonChips.map((reason) => (
+            <span key={reason}>
+              <i aria-hidden="true" />
+              {reason}
+            </span>
+          ))}
+        </div>
+      </motion.div>
+      <div className="gate-section route-section">
+        <h3>Policy route</h3>
+        <div className="policy-route-grid">
+          {routeItems.map(([label, value]) => (
+            <div className={label === "Active version" ? "version-card" : ""} key={label}>
+              <span>{label}</span>
+              <strong>
+                {value}
+                {label === "Active version" && isRollback ? <em> restoring v4</em> : null}
+              </strong>
+            </div>
+          ))}
+        </div>
+      </div>
+      <div className="gate-section diff-section">
+        <div className="section-heading-row">
+          <h3>State diff</h3>
+          <span>immutable proposal snapshot</span>
+        </div>
+        <div className="diff-table" aria-label="Before and after state diff">
+          <div className="diff-row diff-head" aria-hidden="true">
+            <code>Field</code>
+            <span>Before snapshot</span>
+            <span />
+            <strong>Proposed change</strong>
+          </div>
+          {action ? (
+            rows.map((row) => (
+              <motion.div
+                className="diff-row"
+                data-changed={row.changed}
+                key={row.key}
+                layout
+                style={stateStyle(action.status, "token")}
+              >
+                <code>{row.key}</code>
+                <span>{displayValue(row.before)}</span>
+                <span aria-hidden="true">→</span>
+                <strong>{displayValue(row.after)}</strong>
+              </motion.div>
+            ))
+          ) : (
+            <div className="empty-state">No action selected.</div>
+          )}
+        </div>
       </div>
     </section>
   );
@@ -804,46 +1090,127 @@ function DecisionPanel({
   retrying: boolean;
   retryProof: RetryProof | null;
 }) {
-  const canApprove = action?.status === "approval_required";
+  const requiredRole = roleFromGate(action);
+  const isAuthorized = roleIsAuthorized(action, actingRole);
+  const canApprove = action?.status === "approval_required" && isAuthorized;
   const canRollback = action?.status === "executed";
-  const evidence = action ? evidenceItems(action) : [];
+  const enforcementLabel = isAuthorized ? "authorized" : "blocked";
+  const approvedSteps = [
+    "Record approval in Aurora DSQL",
+    "Append immutable trace",
+    "Create new entity version",
+    "Mark refund as pending",
+    "Preserve rollback path",
+  ];
+  const rollbackSteps = [
+    "Restore internal state from proposal snapshot",
+    "Append rollback version",
+    "Create compensation action for external reversal",
+    "Route compensation through policy gate",
+  ];
+  const contextRows = action
+    ? [
+        ["Console input", proposedActionCopy(action)],
+        ["Customer tier", actionTier(action)],
+        ["Customer health", actionHealth(action)],
+        [
+          "Reversibility",
+          action.reversibility_class === "IRREVERSIBLE_EXTERNAL"
+            ? "compensation required"
+            : "exact rollback available",
+        ],
+      ]
+    : [];
 
   return (
     <section className="console-panel decision-panel" aria-labelledby="decision">
       <PanelTitle icon={CheckCircle2} title="Decision" aside={action ? shortId(action.id) : ""} />
       {action ? (
         <>
-          <div className="decision-summary">
+          <div
+            className="decision-banner"
+            data-status={action.status}
+            style={stateStyle(action.status, "token")}
+          >
             <StatusPill status={action.status} />
-            <p>{action.rationale}</p>
-          </div>
-          <div className="role-context-card">
-            <span>Acting as</span>
-            <strong>{actingRole.replaceAll("_", " ")}</strong>
-            <span>Required role</span>
             <strong>
-              {String(action.gate.required_approver_role ?? "none").replaceAll(
-                "_",
-                " ",
-              )}
+              {action.status === "approval_required"
+                ? "Approval required"
+                : stateLabels[action.status] ?? action.status}
             </strong>
+            <p>
+              {action.status === "approval_required"
+                ? `${roleLabel(requiredRole)} approval required before this agent can issue a ${money(
+                    actionAmount(action),
+                  )} refund.`
+                : action.rationale}
+            </p>
           </div>
-          <div className="evidence-list">
-            {evidence.map((item) => (
-              <div className="evidence-row" key={`${item.label}-${item.source}`}>
-                <span>{item.label}</span>
-                <strong>{item.value}</strong>
-                <code>{item.source}</code>
+          <div className="decision-role-grid">
+            <div>
+              <span>Acting as</span>
+              <strong>{actingRole.replaceAll("_", " ")}</strong>
+            </div>
+            <div>
+              <span>Decision role</span>
+              <strong>{roleLabel(requiredRole)}</strong>
+            </div>
+            <div>
+              <span>Enforcement status</span>
+              <strong data-authorized={isAuthorized}>
+                {enforcementLabel}
+                {isAuthorized ? " ✓" : ""}
+              </strong>
+            </div>
+          </div>
+          {!isAuthorized && action.status === "approval_required" ? (
+            <div className="decision-block-note" role="status">
+              Switch acting role to {roleLabel(requiredRole)} to approve this action.
+            </div>
+          ) : null}
+          <div className="decision-outcome-card" data-kind="approved">
+            <h3>What happens if approved</h3>
+            <ul>
+              {approvedSteps.map((step) => (
+                <li key={step}>
+                  <Check aria-hidden="true" size={14} />
+                  {step}
+                </li>
+              ))}
+            </ul>
+            <Image
+              alt=""
+              height={587}
+              priority
+              src="/tether-assets/AstroMiniCheck.png"
+              width={507}
+            />
+          </div>
+          <div className="decision-outcome-card" data-kind="rollback">
+            <h3>What happens if rolled back</h3>
+            <ul>
+              {rollbackSteps.map((step) => (
+                <li key={step}>
+                  <Check aria-hidden="true" size={14} />
+                  {step}
+                </li>
+              ))}
+            </ul>
+            <Image
+              alt=""
+              height={720}
+              priority
+              src="/tether-assets/AstroMiniRollback.png"
+              width={835}
+            />
+          </div>
+          <div className="decision-context-table">
+            {contextRows.map(([label, value]) => (
+              <div key={label}>
+                <span>{label}</span>
+                <code>{value}</code>
               </div>
             ))}
-          </div>
-          <div className="reversibility" style={stateStyle("compensated")}>
-            <span>Reversibility</span>
-            <strong>
-              {action.reversibility_class === "IRREVERSIBLE_EXTERNAL"
-                ? "Compensation required"
-                : "Exact rollback available"}
-            </strong>
           </div>
           <div className="decision-controls">
             <button
@@ -879,7 +1246,7 @@ function DecisionPanel({
           type="button"
         >
           <GitMerge aria-hidden="true" size={16} />
-          {retrying ? "Merging attempts" : "Simulate retry ×3"}
+          {retrying ? "Merging attempts" : "Simulate retry x3"}
         </button>
         <div className="retry-attempts" data-merged={Boolean(retryProof)}>
           {(retryProof?.attempts ?? [1, 2, 3].map((attempt) => ({ attempt }))).map(
@@ -897,7 +1264,7 @@ function DecisionPanel({
           <code>
             {retryProof
               ? `${retryProof.proposal_count} proposal · ${retryProof.execution_count} execution · 0 double refunds`
-              : "one proposal survives"}
+              : "1 of 3 proposals survives"}
           </code>
         </div>
       </div>
@@ -916,12 +1283,29 @@ function FlightRecorder({ traces }: { traces: TraceRow[] }) {
         .slice(0, 30),
     [traces],
   );
+  const recorderChips = [
+    "Aurora DSQL ledger",
+    `${traces.length} traces`,
+    "append-only",
+    "IAM-authenticated",
+    "us-east-1",
+    "retry-safe",
+  ];
 
   return (
-    <section className="console-panel recorder-panel" aria-labelledby="flight-recorder">
+    <section
+      className="console-panel recorder-panel"
+      id="flight-recorder"
+      aria-label="DSQL Flight Recorder"
+    >
       <div className="recorder-title">
         <PanelTitle icon={Database} title="DSQL Flight Recorder" aside="operation_traces" />
         <span className="rec-light">REC</span>
+      </div>
+      <div className="recorder-chips" aria-label="DSQL recorder attributes">
+        {recorderChips.map((chip) => (
+          <span key={chip}>{chip}</span>
+        ))}
       </div>
       <div className="trace-stream" aria-live="polite">
         <AnimatePresence initial={false}>
@@ -963,41 +1347,6 @@ function Skeleton() {
         <span />
       </div>
     </div>
-  );
-}
-
-function ConsoleSidebar({
-  activeView,
-  onChange,
-}: {
-  activeView: ConsoleView;
-  onChange: (view: ConsoleView) => void;
-}) {
-  return (
-    <aside className="console-sidebar" aria-label="Console views">
-      <div className="sidebar-brand">
-        <strong>Tether</strong>
-        <span>Control plane</span>
-      </div>
-      <nav>
-        {consoleViews.map((view) => {
-          const Icon = view.icon;
-
-          return (
-            <button
-              aria-current={activeView === view.key ? "page" : undefined}
-              data-active={activeView === view.key}
-              key={view.key}
-              onClick={() => onChange(view.key)}
-              type="button"
-            >
-              <Icon aria-hidden="true" size={16} />
-              {view.label}
-            </button>
-          );
-        })}
-      </nav>
-    </aside>
   );
 }
 
@@ -1236,10 +1585,14 @@ function InfrastructureView({
 
 export function TetherConsole() {
   const queryClient = useQueryClient();
+  const searchParams = useSearchParams();
+  const viewParam = searchParams.get("view");
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [retryProof, setRetryProof] = useState<RetryProof | null>(null);
   const [mutationError, setMutationError] = useState<MutationError | null>(null);
-  const [activeView, setActiveView] = useState<ConsoleView>("cockpit");
+  const [activeView, setActiveView] = useState<ConsoleView>(() =>
+    viewFromSearchParam(viewParam),
+  );
   const [actingRole, setActingRole] = useState<ActingRole>("finance");
   const dashboard = useQuery({
     queryKey: ["dashboard"],
@@ -1260,7 +1613,15 @@ export function TetherConsole() {
 
   const actions = data?.actions ?? [];
   const selectedAction =
-    actions.find((action) => action.id === selectedId) ?? actions[0] ?? null;
+    actions.find((action) => action.id === selectedId) ??
+    actions.find(
+      (action) =>
+        actionAmount(action) === 1250 &&
+        roleFromGate(action) === "finance" &&
+        action.status === "approval_required",
+    ) ??
+    actions[0] ??
+    null;
 
   const invalidate = () =>
     queryClient.invalidateQueries({
@@ -1348,7 +1709,7 @@ export function TetherConsole() {
       setSelectedId(result.action_id);
       void invalidate();
     },
-    onError: onError("Simulate retry ×3"),
+    onError: onError("Simulate retry x3"),
   });
 
   function renderActiveView() {
@@ -1390,7 +1751,6 @@ export function TetherConsole() {
           selectedId={selectedAction?.id ?? null}
           onSelect={setSelectedId}
           onPropose={(draft) => propose.mutate(draft)}
-          onPreset={() => propose.mutate(defaultDraft)}
           onReset={() => reset.mutate()}
           proposing={propose.isPending}
           resetting={reset.isPending}
@@ -1440,38 +1800,13 @@ export function TetherConsole() {
     <main className="console-shell">
       <ConsoleSidebar activeView={activeView} onChange={setActiveView} />
       <section className="console-main">
-        <header className="console-header">
-          <div>
-            <h1>{consoleViews.find((view) => view.key === activeView)?.label}</h1>
-            <span>The control plane for AI agents that act</span>
-          </div>
-          <div className="header-metrics" aria-label="Current ledger state">
-            <label className="role-selector">
-              <span>Acting as</span>
-              <select
-                value={actingRole}
-                onChange={(event) =>
-                  setActingRole(event.currentTarget.value as ActingRole)
-                }
-              >
-                {actingRoles.map((role) => (
-                  <option key={role} value={role}>
-                    {role.replaceAll("_", " ")}
-                  </option>
-                ))}
-              </select>
-            </label>
-            <span>
-              v<strong>{data?.entity.version_number ?? "-"}</strong>
-            </span>
-            <span>
-              traces<strong>{data?.traces.length ?? 0}</strong>
-            </span>
-            <span>
-              actions<strong>{data?.actions.length ?? 0}</strong>
-            </span>
-          </div>
-        </header>
+        <MissionStrip
+          activeView={activeView}
+          data={data}
+          selectedAction={selectedAction}
+          actingRole={actingRole}
+          onRoleChange={setActingRole}
+        />
         {mutationError ? (
           <div className="toast" role="status">
             <strong>{mutationError.source} failed.</strong>
