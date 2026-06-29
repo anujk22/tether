@@ -792,3 +792,22 @@ Next action:
 ### Next
 
 - Run browser QA on `/console` desktop/mobile and address visual or interaction issues.
+
+## 2026-06-29 - Console Browser QA
+
+### Verification
+
+- Started the local dev server at `http://localhost:3000`.
+- Browser QA opened `/console` on desktop and mobile.
+- Visited Action Cockpit, Ledger, Audit Trail, Policies, and Aurora DSQL views.
+- Verified role mismatch: acting as support lead cannot approve the finance-required proposal.
+- Verified role match: acting as finance can approve and execute the canonical proposal.
+- Verified parameterized proposal: a custom `$50` refund submits through `/v1/actions/propose`.
+- Verified Recorder height stayed above 180px (`340.59375px` in the run).
+- Captured screenshots at `artifacts/console-desktop.png` and `artifacts/console-mobile.png`.
+- Reset demo after QA; final dashboard state was `v4`, one action, two traces, and `approval_required`.
+
+### Remaining Notes
+
+- `pnpm lint` still has the pre-existing unused import warning in the old `/product` cockpit.
+- The working tree still contains unrelated pre-existing marketing visual edits in `src/app/globals.css` and `src/components/tether/landing-page.tsx`.
