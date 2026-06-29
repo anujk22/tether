@@ -8,7 +8,6 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { AnimatePresence, motion, useReducedMotion } from "motion/react";
 import {
   AlertTriangle,
-  Activity,
   ArrowRight,
   BookOpen,
   Check,
@@ -22,11 +21,9 @@ import {
   Network,
   RefreshCcw,
   RotateCcw,
-  Server,
   ShieldCheck,
   Split,
   Undo2,
-  UserRound,
   XCircle,
 } from "lucide-react";
 
@@ -577,34 +574,6 @@ function PanelTitle({
   );
 }
 
-function ArchitectureBreadcrumb() {
-  const steps = [
-    { label: "Agent proposal", icon: Activity },
-    { label: "Policy gate", icon: ShieldCheck },
-    { label: "Human approval", icon: UserRound },
-    { label: "DSQL ledger", icon: Database },
-    { label: "Enterprise systems", icon: Server },
-  ];
-
-  return (
-    <div className="architecture-strip" aria-label="Governed action path">
-      {steps.map((step, index) => {
-        const Icon = step.icon;
-
-        return (
-          <div className="architecture-step" key={step.label}>
-            <Icon aria-hidden="true" size={17} />
-            <span>{step.label}</span>
-            {index < steps.length - 1 ? (
-              <ArrowRight aria-hidden="true" size={18} />
-            ) : null}
-          </div>
-        );
-      })}
-    </div>
-  );
-}
-
 function MissionStrip({
   activeView,
   data,
@@ -661,16 +630,7 @@ function MissionStrip({
         <h1>{title}</h1>
         <p>{subtitle}</p>
       </div>
-      <div className="mission-kpis" aria-label="Console metrics">
-        {kpis.map((kpi) => (
-          <div className="mission-kpi" data-tone={kpi.tone} key={kpi.label}>
-            <strong>{kpi.value}</strong>
-            <span>{kpi.label}</span>
-          </div>
-        ))}
-      </div>
-      <ArchitectureBreadcrumb />
-      <div className="header-metrics" aria-label="Current ledger state">
+      <div className="header-metrics" aria-label="Console controls">
         <label className="role-selector">
           <span>Acting as</span>
           <select
@@ -684,15 +644,14 @@ function MissionStrip({
             ))}
           </select>
         </label>
-        <span>
-          v<strong>{activeVersion}</strong>
-        </span>
-        <span>
-          traces<strong>{data?.traces.length ?? 0}</strong>
-        </span>
-        <span>
-          actions<strong>{data?.actions.length ?? 0}</strong>
-        </span>
+      </div>
+      <div className="mission-kpis" aria-label="Console metrics">
+        {kpis.map((kpi) => (
+          <div className="mission-kpi" data-tone={kpi.tone} key={kpi.label}>
+            <strong>{kpi.value}</strong>
+            <span>{kpi.label}</span>
+          </div>
+        ))}
       </div>
     </header>
   );
