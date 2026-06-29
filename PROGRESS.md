@@ -894,6 +894,47 @@ Next action:
 
 - `pnpm exec tsc --noEmit` passed.
 - `pnpm lint` passed with no warnings.
+
+## 2026-06-29 - Final Production Deploy After Landing Correction
+
+### Deployment
+
+- Deployed commit `7706bf5` to Vercel production.
+- Latest production deployment URL: `https://tether-nd4wkyfkt-anujs-projects-25b14a93.vercel.app`.
+- Production alias: `https://tether-teal.vercel.app`.
+
+### Production Verification
+
+- Browser smoke passed for:
+  - `/` at `1440x900`
+  - `/` at `390x844`
+  - `/console` at `1440x900`
+  - `/console?view=infrastructure` at `1440x900`
+  - `/console?demo=guided&key=tetherdemo2026` at `1440x900`
+- Confirmed `Built with` order in production:
+  - `Vercel`
+  - `AWS Aurora DSQL`
+  - `Next.js`
+  - `React`
+  - `TypeScript`
+- Confirmed `Tailwind CSS`, fake trust copy, and filler SaaS nav copy are absent from homepage text.
+- Confirmed stale marketing routes redirect honestly to `/console`:
+  - `/docs`
+  - `/pricing`
+  - `/product`
+  - `/solutions`
+- Re-ran the production DSQL flow:
+  - `/v1/demo/reset` restored canonical `approval_required`
+  - `/v1/actions/propose` created a finance-gated proposal
+  - wrong-role approval returned `400`
+  - finance approval returned `executed`
+  - rollback returned `compensated`
+  - `/v1/actions/retry-demo` returned `unique_action_count=1`, `proposal_count=1`, `execution_count=1`, `status=executed`
+  - `/v1/infrastructure` returned `connected`, `us-east-1`, `IAM token auth`, and live row counts for the required DSQL tables
+- Reset production after QA:
+  - dashboard actions `3`
+  - active version `v4`
+- Final screenshots captured under `/tmp/tether-prod-final-qa-178275-final/`.
 - Browser QA passed for `/` and `/console` at:
   - `1440x900`
   - `1536x864`
