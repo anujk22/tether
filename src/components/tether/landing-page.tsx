@@ -14,6 +14,8 @@ const assets = {
   rollback: "/tether-assets/AstroMiniRollback.png",
   tiny: "/tether-assets/AstronautForwardMiniIconTiny.png",
   moon: "/tether-assets/AstronautOnMiniMoonNoEffects.png",
+  miniMoon: "/tether-assets/minimoon.png",
+  miniSatellite: "/tether-assets/minisatellite.png",
   single: "/tether-assets/AstronautSingleFacingForward.png",
   right: "/tether-assets/miniastronaut-facing-right.png",
 };
@@ -186,8 +188,27 @@ function StationScene() {
         src={assets.right}
         width={538}
       />
-      <div className="planet planet-a" aria-hidden="true" />
-      <div className="planet planet-b" aria-hidden="true" />
+      <Astro
+        alt=""
+        className="hero-moon hero-moon-a"
+        height={279}
+        src={assets.miniMoon}
+        width={280}
+      />
+      <Astro
+        alt=""
+        className="hero-mini-satellite"
+        height={477}
+        src={assets.miniSatellite}
+        width={522}
+      />
+      <Astro
+        alt=""
+        className="hero-moon hero-moon-b"
+        height={279}
+        src={assets.miniMoon}
+        width={280}
+      />
     </div>
   );
 }

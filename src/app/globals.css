@@ -618,30 +618,6 @@ input:focus-visible {
   background: #d8d8d8;
 }
 
-.planet {
-  border-radius: 50%;
-  position: absolute;
-}
-
-.planet-a {
-  width: 30px;
-  height: 30px;
-  right: 88px;
-  top: 36px;
-  background:
-    radial-gradient(circle at 34% 30%, #f4f4f4 0 16%, transparent 17%),
-    linear-gradient(135deg, #e4e4e4, #686868);
-  box-shadow: 0 0 0 3px rgb(255 255 255 / 0.2);
-}
-
-.planet-b {
-  width: 26px;
-  height: 26px;
-  right: 176px;
-  top: 382px;
-  background: linear-gradient(135deg, #f4f4f4, #5c5c5c);
-}
-
 .feature-band {
   display: grid;
   grid-template-columns: repeat(5, minmax(0, 1fr));
@@ -1293,6 +1269,34 @@ input:focus-visible {
 
 .hero-astro-left {
   transform: scaleX(-1);
+}
+
+.hero-moon,
+.hero-mini-satellite {
+  position: absolute;
+  z-index: 3;
+}
+
+.hero-moon {
+  width: 32px;
+  filter: drop-shadow(0 6px 10px rgb(0 0 0 / 0.56));
+}
+
+.hero-moon-a {
+  right: 7%;
+  top: 52px;
+}
+
+.hero-moon-b {
+  right: 18%;
+  top: 522px;
+}
+
+.hero-mini-satellite {
+  width: 58px;
+  right: 5%;
+  top: 270px;
+  transform: rotate(16deg);
 }
 
 .feature-glyph {
@@ -4418,6 +4422,15 @@ input:focus-visible {
   .landing-shell .station-scene {
     width: 100%;
     transform: none;
+  }
+
+  .hero-moon {
+    width: 28px;
+  }
+
+  .hero-mini-satellite {
+    width: 44px;
+    right: 12%;
   }
 }
 

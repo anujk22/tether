@@ -1184,3 +1184,24 @@ Next action:
   - `/console` `390x844`
   - `/console?view=infrastructure` `390x844`
 - Confirmed the hidden guided route/key is not exposed in homepage rendered text.
+
+## 2026-06-29 - Final Landing Asset + Built-With Correction
+
+### Changes
+
+- Kept the new bitmap hero moon/satellite assets used by the landing station scene:
+  - `public/tether-assets/minimoon.png`
+  - `public/tether-assets/minisatellite.png`
+- Removed the older CSS-only planet/satellite decoration from the hero.
+- Restored the required sponsor-first `Built with` row:
+  - `Vercel`
+  - `AWS Aurora DSQL`
+  - `Next.js`
+  - `React`
+  - `TypeScript`
+- `Tailwind CSS` remains absent from the row.
+
+### Verification
+
+- `pnpm exec tsc --noEmit` passed.
+- `pnpm lint` passed with no warnings.
