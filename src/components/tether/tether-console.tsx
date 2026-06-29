@@ -1,6 +1,6 @@
 "use client";
 
-import type { CSSProperties } from "react";
+import type { CSSProperties, FormEvent } from "react";
 import { useMemo, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { AnimatePresence, motion, useReducedMotion } from "motion/react";
@@ -95,6 +95,22 @@ type RetryProof = {
 type MutationError = {
   source: string;
   message: string;
+};
+
+type ComposerDraft = {
+  actionType: "issue_refund" | "refund_reversal";
+  refundAmount: string;
+  customerTier: "enterprise" | "business" | "startup";
+  customerHealth: "stable" | "at_risk";
+  riskLevel: "LOW" | "MEDIUM" | "HIGH";
+};
+
+const defaultDraft: ComposerDraft = {
+  actionType: "issue_refund",
+  refundAmount: "1250",
+  customerTier: "enterprise",
+  customerHealth: "at_risk",
+  riskLevel: "HIGH",
 };
 
 const lifecycle = [
@@ -225,6 +241,71 @@ function evidenceItems(action: ActionSummary): Array<{
     .slice(0, 3);
 }
 
+function amountFromDraft(draft: ComposerDraft): number {
+  const amount = Number(draft.refundAmount);
+
+  if (!Number.isFinite(amount) || amount < 0) return 0;
+
+  return Math.round(amount * 100) / 100;
+}
+
+function priorityForAmount(amount: number): string {
+  if (amount > 500) return "critical";
+  if (amount >= 100) return "elevated";
+  return "normal";
+}
+
+function buildProposalFromDraft(draft: ComposerDraft) {
+  const amount = amountFromDraft(draft);
+  const isReversal = draft.actionType === "refund_reversal";
+  const idempotencyKey = `console-${draft.actionType}-${Date.now()}`;
+  const base = scriptedRefundProposal(idempotencyKey);
+  const proposedChanges: JsonRecord = isReversal
+    ? {
+        refund_amount: amount,
+        reversal_request_status: "queued",
+        external_system: "simulated_payments",
+        origin_action_id: "manual_console_request",
+      }
+    : {
+        refund_amount: amount,
+        refund_status: `pending_refund_${amount}`,
+        ticket_priority: priorityForAmount(amount),
+        customer_health: draft.customerHealth,
+        csm_notified:
+          draft.customerTier === "enterprise" && draft.customerHealth === "at_risk",
+        tier: draft.customerTier,
+      };
+
+  return {
+    ...base,
+    action_type: draft.actionType,
+    proposed_changes: proposedChanges,
+    rationale: isReversal
+      ? `Operator requested a simulated reversal for ${money(amount)} through the Tether console.`
+      : `Operator proposed a ${money(amount)} refund for a ${draft.customerTier} customer. Tether should gate the write before customer state changes.`,
+    evidence: [
+      {
+        label: "Console input",
+        value: `${money(amount)} ${draft.actionType.replaceAll("_", " ")}`,
+        source: "operator_console",
+      },
+      {
+        label: "Customer tier",
+        value: draft.customerTier,
+        source: "operator_console",
+      },
+      {
+        label: "Customer health",
+        value: draft.customerHealth,
+        source: "operator_console",
+      },
+    ],
+    risk_level: draft.riskLevel,
+    idempotency_key: idempotencyKey,
+  };
+}
+
 function valuesEqual(left: unknown, right: unknown): boolean {
   if (Object.is(left, right)) return true;
   if (typeof left === "object" || typeof right === "object") {
@@ -234,12 +315,21 @@ function valuesEqual(left: unknown, right: unknown): boolean {
 }
 
 function diffRows(action: ActionSummary) {
-  const keys = [
+  const preferredKeys = [
+    "refund_amount",
     "refund_status",
     "ticket_priority",
     "customer_health",
     "csm_notified",
+    "tier",
   ];
+  const keys = Array.from(
+    new Set([
+      ...preferredKeys,
+      ...Object.keys(action.prior_state),
+      ...Object.keys(action.proposed_changes),
+    ]),
+  );
 
   return keys
     .filter((key) => key in action.prior_state || key in action.proposed_changes)
@@ -309,6 +399,7 @@ function AgentIntake({
   selectedId,
   onSelect,
   onPropose,
+  onPreset,
   onReset,
   proposing,
   resetting,
@@ -316,14 +407,132 @@ function AgentIntake({
   actions: ActionSummary[];
   selectedId: string | null;
   onSelect: (id: string) => void;
-  onPropose: () => void;
+  onPropose: (draft: ComposerDraft) => void;
+  onPreset: () => void;
   onReset: () => void;
   proposing: boolean;
   resetting: boolean;
 }) {
+  const [draft, setDraft] = useState<ComposerDraft>(defaultDraft);
+
+  function updateDraft<K extends keyof ComposerDraft>(
+    key: K,
+    value: ComposerDraft[K],
+  ) {
+    setDraft((current) => ({
+      ...current,
+      [key]: value,
+    }));
+  }
+
+  function submitAction(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    onPropose(draft);
+  }
+
   return (
     <section className="console-panel intake-panel" aria-labelledby="agent-intake">
       <PanelTitle icon={Split} title="Agent Intake" aside={`${actions.length} actions`} />
+      <form className="action-composer" onSubmit={submitAction}>
+        <div className="composer-heading">
+          <span>New action</span>
+          <button
+            disabled={proposing || resetting}
+            onClick={() => {
+              setDraft(defaultDraft);
+              onPreset();
+            }}
+            type="button"
+          >
+            Use $1,250 preset
+          </button>
+        </div>
+        <label>
+          <span>Action type</span>
+          <select
+            value={draft.actionType}
+            onChange={(event) =>
+              updateDraft(
+                "actionType",
+                event.currentTarget.value as ComposerDraft["actionType"],
+              )
+            }
+          >
+            <option value="issue_refund">Issue refund</option>
+            <option value="refund_reversal">Request refund reversal</option>
+          </select>
+        </label>
+        <div className="composer-row">
+          <label>
+            <span>Refund amount</span>
+            <input
+              min="0"
+              step="1"
+              type="number"
+              value={draft.refundAmount}
+              onChange={(event) => updateDraft("refundAmount", event.currentTarget.value)}
+            />
+          </label>
+          <label>
+            <span>Risk</span>
+            <select
+              value={draft.riskLevel}
+              onChange={(event) =>
+                updateDraft(
+                  "riskLevel",
+                  event.currentTarget.value as ComposerDraft["riskLevel"],
+                )
+              }
+            >
+              <option value="LOW">LOW</option>
+              <option value="MEDIUM">MEDIUM</option>
+              <option value="HIGH">HIGH</option>
+            </select>
+          </label>
+        </div>
+        <div className="composer-row">
+          <label>
+            <span>Customer tier</span>
+            <select
+              value={draft.customerTier}
+              onChange={(event) =>
+                updateDraft(
+                  "customerTier",
+                  event.currentTarget.value as ComposerDraft["customerTier"],
+                )
+              }
+            >
+              <option value="enterprise">Enterprise</option>
+              <option value="business">Business</option>
+              <option value="startup">Startup</option>
+            </select>
+          </label>
+          <label>
+            <span>Health</span>
+            <select
+              value={draft.customerHealth}
+              onChange={(event) =>
+                updateDraft(
+                  "customerHealth",
+                  event.currentTarget.value as ComposerDraft["customerHealth"],
+                )
+              }
+            >
+              <option value="stable">Stable</option>
+              <option value="at_risk">At risk</option>
+            </select>
+          </label>
+        </div>
+        <button
+          className="primary-control composer-submit"
+          disabled={proposing || resetting}
+          style={stateStyle("executed", "token")}
+          type="submit"
+        >
+          <CircleDollarSign aria-hidden="true" size={16} />
+          {proposing ? "Proposing action" : "Submit real proposal"}
+        </button>
+      </form>
       <div className="action-list" aria-labelledby="agent-intake">
         {actions.length ? (
           actions.map((action) => (
@@ -357,16 +566,6 @@ function AgentIntake({
         )}
       </div>
       <div className="intake-controls">
-        <button
-          className="primary-control"
-          disabled={proposing || resetting}
-          onClick={onPropose}
-          style={stateStyle("executed", "token")}
-          type="button"
-        >
-          <CircleDollarSign aria-hidden="true" size={16} />
-          {proposing ? "Proposing refund" : "Propose refund"}
-        </button>
         <button
           className="secondary-control"
           disabled={resetting}
@@ -695,11 +894,11 @@ export function TetherConsole() {
   };
 
   const propose = useMutation({
-    mutationFn: () =>
+    mutationFn: (draft: ComposerDraft) =>
       fetchJson<{ action_id: string }>("/v1/actions/propose", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(scriptedRefundProposal(`ui-refund-${Date.now()}`)),
+        body: JSON.stringify(buildProposalFromDraft(draft)),
       }),
     onSuccess: (result) => {
       setMutationError(null);
@@ -814,7 +1013,8 @@ export function TetherConsole() {
           actions={actions}
           selectedId={selectedAction?.id ?? null}
           onSelect={setSelectedId}
-          onPropose={() => propose.mutate()}
+          onPropose={(draft) => propose.mutate(draft)}
+          onPreset={() => propose.mutate(defaultDraft)}
           onReset={() => reset.mutate()}
           proposing={propose.isPending}
           resetting={reset.isPending}

@@ -730,3 +730,23 @@ Next action:
 ### Next
 
 - Add parameterized proposal composition in `/console` so operators can submit real proposals with arbitrary refund amounts and see different gate routes.
+
+## 2026-06-29 - Parameterized Proposals P0
+
+### Changes
+
+- Added a New action composer to the `/console` Agent Intake panel.
+- Operators can choose `issue_refund` or `refund_reversal`, enter refund amount, customer tier, health state, and risk level.
+- Custom submissions build real `/v1/actions/propose` payloads and still use the existing gate/propose backend path.
+- Kept the scripted `$1,250` refund as a one-click preset.
+- Expanded the Policy Gate diff to include dynamic proposal snapshot fields such as `refund_amount` and `tier`.
+- Added scoped console CSS for the graphite instrument layout, composer controls, semantic buttons, state rail, diff rows, and Flight Recorder.
+
+### Verification
+
+- `pnpm exec tsc --noEmit` passed.
+- `pnpm lint` passed with the pre-existing `src/components/tether/product-cockpit.tsx` warning.
+
+### Next
+
+- Add the Ledger, Audit Trail, Policies, and Infrastructure views around the cockpit shell.
