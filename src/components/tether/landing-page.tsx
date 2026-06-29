@@ -1,60 +1,12 @@
 "use client";
 
 import Image from "next/image";
-import { useEffect, useMemo, useState } from "react";
 import {
   ArrowLeft,
   ArrowRight,
   ChevronDown,
   Infinity,
-  RotateCcw,
 } from "lucide-react";
-
-type JsonRecord = Record<string, unknown>;
-
-type ActionSummary = {
-  id: string;
-  agent_name: string;
-  action_type_key: string;
-  proposed_changes: JsonRecord;
-  prior_state: JsonRecord;
-  rationale: string;
-  evidence: unknown[];
-  risk_level: string;
-  status: string;
-  reversibility_class: string;
-  idempotency_key: string;
-  created_at: string;
-  gate: JsonRecord;
-};
-
-type EntitySnapshot = {
-  version_number: number;
-  state: JsonRecord;
-  external_ref: string;
-};
-
-type TraceRow = {
-  id: string;
-  action_id: string | null;
-  operation: string;
-  table_name: string;
-  summary: string;
-  created_at: string;
-};
-
-type DashboardData = {
-  actions: ActionSummary[];
-  entity: EntitySnapshot;
-  traces: TraceRow[];
-};
-
-type RetryProof = {
-  action_id: string;
-  proposal_count: number;
-  execution_count: number;
-  status: string;
-};
 
 const assets = {
   station: "/tether-assets/satellitestation.png",
@@ -138,42 +90,6 @@ const footerColumns = [
   ["Resources", "Docs", "Blog", "Case studies", "Help center"],
   ["Company", "About", "Careers", "Partners", "Contact"],
 ];
-
-const diffKeys = [
-  "refund_status",
-  "ticket_priority",
-  "customer_health",
-  "csm_notified",
-];
-
-async function fetchJson<T>(url: string, init?: RequestInit): Promise<T> {
-  const response = await fetch(url, init);
-  const body = await response.json();
-
-  if (!response.ok) {
-    throw new Error(body.error ?? `Request failed: ${url}`);
-  }
-
-  return body as T;
-}
-
-function formatValue(value: unknown): string {
-  if (typeof value === "boolean") return value ? "true" : "false";
-  if (typeof value === "number") return String(value);
-  if (typeof value === "string") return value.replaceAll("_", " ");
-  if (value == null) return "none";
-  return JSON.stringify(value);
-}
-
-function shortId(id: string | null | undefined): string {
-  if (!id) return "pending";
-  return id.slice(0, 8);
-}
-
-function statusLabel(status: string | undefined): string {
-  if (!status) return "Connecting";
-  return status.replaceAll("_", " ");
-}
 
 function TetherLogo() {
   return (
@@ -282,68 +198,9 @@ function FeatureGlyph({ src, title }: { src: string; title: string }) {
   );
 }
 
-function LiveDiff({ action }: { action: ActionSummary | undefined }) {
-  if (!action) {
-    return <div className="live-empty">Reset the demo to create the canonical refund proposal.</div>;
-  }
-
+function ConsoleTeaser() {
   return (
-    <div className="live-diff" aria-label="Live state diff from proposal snapshots">
-      {diffKeys.map((key) => (
-        <div className="live-diff-row" key={key}>
-          <code>{key}</code>
-          <span>{formatValue(action.prior_state[key])}</span>
-          <b>→</b>
-          <strong>{formatValue(action.proposed_changes[key])}</strong>
-        </div>
-      ))}
-    </div>
-  );
-}
-
-function TraceTape({ traces }: { traces: TraceRow[] }) {
-  const latest = traces.slice(-4).reverse();
-
-  return (
-    <div className="trace-tape" aria-label="Live operation traces">
-      {latest.length ? (
-        latest.map((trace) => (
-          <div key={trace.id}>
-            <span>{trace.operation}</span>
-            <code>{trace.table_name}</code>
-            <p>{trace.summary}</p>
-          </div>
-        ))
-      ) : (
-        <p>No operation traces yet.</p>
-      )}
-    </div>
-  );
-}
-
-function ControlDiagram({
-  dashboard,
-  busy,
-  lastEvent,
-  onReset,
-  onApprove,
-  onRollback,
-  onRetry,
-}: {
-  dashboard: DashboardData | null;
-  busy: string | null;
-  lastEvent: string;
-  onReset: () => void;
-  onApprove: () => void;
-  onRollback: () => void;
-  onRetry: () => void;
-}) {
-  const action = dashboard?.actions[0];
-  const canApprove = action?.status === "approval_required";
-  const canRollback = action?.status === "executed";
-
-  return (
-    <div className="control-diagram" id="how" aria-label="Live Tether control plane">
+    <a className="console-teaser" id="how" href="/console" aria-label="Open Tether console">
       <div className="diagram-label">AI agents</div>
       <div className="agent-row">
         {Array.from({ length: 5 }).map((_, index) => (
@@ -358,40 +215,53 @@ function ControlDiagram({
         ))}
         <span className="more-node">...</span>
       </div>
-      <div className="control-plane live-control-plane">
+      <div className="control-plane teaser-control-plane">
         <TetherLogo />
-        <div className="live-ledger-row">
+        <div className="teaser-ledger-row">
           <span>
-            status <strong>{statusLabel(action?.status)}</strong>
+            status <strong>approval required</strong>
           </span>
           <span>
-            version <strong>v{dashboard?.entity.version_number ?? "-"}</strong>
+            version <strong>v4</strong>
           </span>
           <span>
-            action <strong>{shortId(action?.id)}</strong>
+            action <strong>open console</strong>
           </span>
         </div>
-        <LiveDiff action={action} />
-        <div className="live-actions">
-          <button disabled={busy !== null} onClick={onReset} type="button">
-            Reset demo
-          </button>
-          <button disabled={!canApprove || busy !== null} onClick={onApprove} type="button">
-            Approve refund
-          </button>
-          <button disabled={!canRollback || busy !== null} onClick={onRollback} type="button">
-            <RotateCcw size={14} />
-            Rollback action
-          </button>
-          <button disabled={busy !== null} onClick={onRetry} type="button">
-            Retry ×3
-          </button>
+        <div className="teaser-diff" aria-hidden="true">
+          {[
+            ["refund_status", "none", "pending_refund_1250"],
+            ["ticket_priority", "normal", "critical"],
+            ["customer_health", "stable", "at_risk"],
+            ["csm_notified", "false", "true"],
+          ].map(([field, before, after]) => (
+            <div key={field}>
+              <code>{field}</code>
+              <span>{before}</span>
+              <b>→</b>
+              <strong>{after}</strong>
+            </div>
+          ))}
         </div>
-        <p className="live-event">{busy ?? lastEvent}</p>
+        <span className="teaser-cta">
+          Explore full console
+          <ArrowRight size={15} />
+        </span>
       </div>
       <div className="diagram-label">Aurora DSQL operation_traces</div>
-      <TraceTape traces={dashboard?.traces ?? []} />
-    </div>
+      <div className="teaser-trace-tape" aria-hidden="true">
+        <div>
+          <span>INSERT</span>
+          <code>action_proposals</code>
+          <p>Inserted proposed issue_refund action.</p>
+        </div>
+        <div>
+          <span>UPDATE</span>
+          <code>action_proposals</code>
+          <p>Gate set status to approval_required.</p>
+        </div>
+      </div>
+    </a>
   );
 }
 
@@ -409,64 +279,6 @@ function MoonPanel() {
 }
 
 export function LandingPage() {
-  const [dashboard, setDashboard] = useState<DashboardData | null>(null);
-  const [busy, setBusy] = useState<string | null>(null);
-  const [lastEvent, setLastEvent] = useState("Live DSQL ledger connected.");
-
-  async function refreshDashboard() {
-    const nextDashboard = await fetchJson<DashboardData>("/v1/dashboard");
-    setDashboard(nextDashboard);
-    return nextDashboard;
-  }
-
-  useEffect(() => {
-    let active = true;
-
-    async function load() {
-      try {
-        const nextDashboard = await fetchJson<DashboardData>("/v1/dashboard");
-        if (!active) return;
-        setDashboard(nextDashboard);
-      } catch (error) {
-        if (!active) return;
-        setLastEvent(error instanceof Error ? error.message : "Dashboard fetch failed.");
-      }
-    }
-
-    void load();
-    const interval = window.setInterval(() => {
-      void load();
-    }, 1800);
-
-    return () => {
-      active = false;
-      window.clearInterval(interval);
-    };
-  }, []);
-
-  async function runMutation(label: string, mutation: () => Promise<unknown>) {
-    setBusy(label);
-    try {
-      const result = await mutation();
-      await refreshDashboard();
-      if (label === "Retry proof") {
-        const retry = result as RetryProof;
-        setLastEvent(
-          `Retry proof: ${retry.proposal_count} proposal · ${retry.execution_count} execution · 0 double refunds.`,
-        );
-      } else {
-        setLastEvent(`${label} completed against Aurora DSQL.`);
-      }
-    } catch (error) {
-      setLastEvent(error instanceof Error ? error.message : `${label} failed.`);
-    } finally {
-      setBusy(null);
-    }
-  }
-
-  const action = dashboard?.actions[0];
-  const heroStatus = useMemo(() => statusLabel(action?.status), [action?.status]);
-
   return (
     <main className="site-shell">
       <header className="site-header">
@@ -481,19 +293,10 @@ export function LandingPage() {
         </nav>
         <div className="header-actions">
           <a href="#how">Sign in</a>
-          <button
-            className="button button-light"
-            disabled={busy !== null}
-            onClick={() =>
-              void runMutation("Reset demo", () =>
-                fetchJson("/v1/demo/reset", { method: "POST" }),
-              )
-            }
-            type="button"
-          >
+          <a className="button button-light" href="/console">
             Book a demo
             <ArrowRight size={16} />
-          </button>
+          </a>
         </div>
       </header>
 
@@ -512,20 +315,11 @@ export function LandingPage() {
             Govern at scale.
           </p>
           <div className="hero-actions">
-            <button
-              className="button button-light"
-              disabled={busy !== null}
-              onClick={() =>
-                void runMutation("Reset demo", () =>
-                  fetchJson("/v1/demo/reset", { method: "POST" }),
-                )
-              }
-              type="button"
-            >
+            <a className="button button-light" href="/console">
               Book a demo
               <ArrowRight size={18} />
-            </button>
-            <a className="button button-dark" href="#how">
+            </a>
+            <a className="button button-dark" href="/console">
               Explore product
             </a>
           </div>
@@ -560,51 +354,11 @@ export function LandingPage() {
             use, providing policy, visibility, and control across every action.
           </p>
           <a href="#how">
-            Current state: {heroStatus}
+            See the console preview
             <ArrowRight size={18} />
           </a>
         </div>
-        <ControlDiagram
-          busy={busy}
-          dashboard={dashboard}
-          lastEvent={lastEvent}
-          onApprove={() =>
-            action &&
-            void runMutation("Approve refund", () =>
-              fetchJson(`/v1/actions/${action.id}/decision`, {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({
-                  decision: "approve",
-                  note: "Landing page approval from Tether.",
-                }),
-              }),
-            )
-          }
-          onReset={() =>
-            void runMutation("Reset demo", () =>
-              fetchJson("/v1/demo/reset", { method: "POST" }),
-            )
-          }
-          onRetry={() =>
-            void runMutation("Retry proof", () =>
-              fetchJson<RetryProof>("/v1/actions/retry-demo", { method: "POST" }),
-            )
-          }
-          onRollback={() =>
-            action &&
-            void runMutation("Rollback action", () =>
-              fetchJson(`/v1/actions/${action.id}/rollback`, {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({
-                  performed_by_user_id: "00000000-0000-4000-8000-000000000102",
-                  reason: "Landing page rollback requested by finance.",
-                }),
-              }),
-            )
-          }
-        />
+        <ConsoleTeaser />
       </section>
 
       <section className="testimonial-section" aria-label="Customer quotes">
@@ -640,20 +394,11 @@ export function LandingPage() {
           </p>
         </div>
         <div className="launch-actions">
-          <button
-            className="button button-light"
-            disabled={busy !== null}
-            onClick={() =>
-              void runMutation("Reset demo", () =>
-                fetchJson("/v1/demo/reset", { method: "POST" }),
-              )
-            }
-            type="button"
-          >
+          <a className="button button-light" href="/console">
             Book a demo
             <ArrowRight size={18} />
-          </button>
-          <a href="#how">
+          </a>
+          <a href="/console">
             Explore product
             <ArrowRight size={18} />
           </a>

@@ -707,3 +707,26 @@ Next action:
 - `pnpm ui:qa` passed.
 - Browser interaction test passed: reset -> approve -> rollback -> backend confirms original `issue_refund` became `compensated` -> reset.
 - Final dashboard state verified: `v4`, one action, two traces, latest status `approval_required`.
+
+## 2026-06-29 - Console Route P0
+
+### Inputs
+
+- Read the new product-console request from the attached text.
+- Assumption: keep `/` as the marketing page, keep backend gate/execute/rollback/retry/compensation logic stable, and move the real product surface to `/console`.
+
+### Changes
+
+- Added `/console` as the dedicated full-screen Tether product route using the existing DSQL-backed console component.
+- Wired marketing "Book a demo" and "Explore product" CTAs to `/console`.
+- Removed live mutation controls from the marketing page preview.
+- Replaced the landing page's cramped live cockpit with a static console teaser linking to `/console`.
+
+### Verification
+
+- `pnpm exec tsc --noEmit` passed.
+- `pnpm lint` passed with one pre-existing warning in `src/components/tether/product-cockpit.tsx`.
+
+### Next
+
+- Add parameterized proposal composition in `/console` so operators can submit real proposals with arbitrary refund amounts and see different gate routes.
