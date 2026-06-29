@@ -899,8 +899,8 @@ Next action:
 
 ### Deployment
 
-- Deployed commit `7706bf5` to Vercel production.
-- Latest production deployment URL: `https://tether-nd4wkyfkt-anujs-projects-25b14a93.vercel.app`.
+- Deployed commit `93d3909` to Vercel production.
+- Latest production deployment URL: `https://tether-j37bhn2sq-anujs-projects-25b14a93.vercel.app`.
 - Production alias: `https://tether-teal.vercel.app`.
 
 ### Production Verification
@@ -934,7 +934,7 @@ Next action:
 - Reset production after QA:
   - dashboard actions `3`
   - active version `v4`
-- Final screenshots captured under `/tmp/tether-prod-final-qa-178275-final/`.
+- Final screenshots captured under `/tmp/tether-prod-final-qa-178275-final-head/`.
 - Browser QA passed for `/` and `/console` at:
   - `1440x900`
   - `1536x864`
