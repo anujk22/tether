@@ -1136,3 +1136,51 @@ Next action:
   - final proof view showed `Infrastructure / Aurora DSQL`, live row counts, and truth boundary copy
 - Guided QA screenshots were captured under `/tmp/tether-guided-local-1782755477052/`.
 - Ran `pnpm demo:reset` after QA to restore the clean canonical local scenario.
+
+## 2026-06-29 - Final Production QA After Guided Demo Deploy
+
+### Deployment
+
+- Deployed the latest committed app to Vercel production.
+- Latest production deployment URL: `https://tether-bcg224ssg-anujs-projects-25b14a93.vercel.app`.
+- Production alias: `https://tether-teal.vercel.app`.
+- Vercel project remains `tether`.
+- Team ID remains `team_JvpWb34tpmOp3AX7hzaaf8br`.
+
+### Production Verification
+
+- Re-ran the full production API flow after redeploy:
+  - `/console` returned HTTP `200`
+  - `/v1/demo/reset` returned canonical `approval_required`
+  - `/v1/actions/propose` created a finance-gated `$1,250` proposal
+  - finance approval executed the action
+  - rollback returned `compensated` with a restoring version and compensation action
+  - `/v1/actions/retry-demo` returned `unique_action_count=1`, `proposal_count=1`, `execution_count=1`, `status=executed`
+  - `/v1/infrastructure` returned `connected`, `us-east-1`, `IAM token auth`, and 15 row-count entries
+- Ran the hidden guided demo in production at `/console?demo=guided&key=tetherdemo2026`:
+  - cold open visible
+  - proposal/gate step passed
+  - retry proof step passed
+  - human approval step passed and showed v5
+  - rollback step passed and showed v6
+  - final Aurora DSQL proof view passed
+- Production guided screenshots were captured under `/tmp/tether-guided-prod-1782755831672/`.
+- Reset production after guided QA:
+  - canonical action status `approval_required`
+  - dashboard actions `3`
+  - active version `v4`
+
+### Viewport QA
+
+- Final production screenshots were captured under `/tmp/tether-final-prod-qa-1782755897512/`.
+- Production viewport checks passed with no body horizontal overflow and no fake SaaS/trust copy at:
+  - `/` `1440x900`
+  - `/console` `1440x900`
+  - `/console?view=infrastructure` `1440x900`
+  - `/` `1920x1080`
+  - `/console` `1920x1080`
+  - `/console?view=infrastructure` `1920x1080`
+  - `/` `390x844`
+  - `/console` `390x844`
+  - `/console?view=infrastructure` `390x844`
+- Confirmed the hidden guided route/key is not exposed in homepage rendered text.
