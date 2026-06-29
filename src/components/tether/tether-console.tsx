@@ -645,6 +645,16 @@ function MissionStrip({
           </select>
         </label>
       </div>
+      <div className="reality-strip" aria-label="Demo truth boundary">
+        <span>
+          <strong>Real</strong> policy gate, approvals, versioning, rollback,
+          idempotency, and Aurora DSQL writes.
+        </span>
+        <span>
+          <strong>Simulated</strong> AI agent, payment processor, support, and CRM
+          side effects.
+        </span>
+      </div>
       <div className="mission-kpis" aria-label="Console metrics">
         {kpis.map((kpi) => (
           <div className="mission-kpi" data-tone={kpi.tone} key={kpi.label}>
@@ -1494,14 +1504,42 @@ function InfrastructureView({
   retrying: boolean;
   onRetry: () => void;
 }) {
+  const proofFlow = [
+    "Vercel",
+    "Next.js route handlers",
+    "Aurora DSQL",
+    "action_proposals",
+    "approvals",
+    "entity_versions",
+    "operation_traces",
+    "audit_events",
+  ];
+
   return (
     <section className="console-panel view-panel infrastructure-view">
       <PanelTitle icon={Network} title="Infrastructure / Aurora DSQL" aside="live proof" />
       <div className="infra-status-line">
-        Aurora DSQL · {infrastructure?.region ?? "us-east-1"} ·{" "}
+        Live connection · Aurora DSQL · {infrastructure?.region ?? "us-east-1"} ·{" "}
         {infrastructure?.auth ?? "IAM token auth"} ·{" "}
         {infrastructure?.consistency ?? "strong consistency"} ·{" "}
-        {infrastructure?.isolation ?? "snapshot isolation"} · Next.js app
+        {infrastructure?.isolation ?? "snapshot isolation"} · Vercel serverless
+      </div>
+      <div className="infra-value-card">
+        <strong>Why Aurora DSQL matters</strong>
+        <p>
+          Tether guarantees exactly-once execution and exact rollback because every
+          action is an immutable, versioned transaction in Aurora DSQL: strong
+          consistency plus a unique idempotency key. Without a strongly-consistent
+          ledger, you cannot promise finance a refund will not fire twice.
+        </p>
+      </div>
+      <div className="infra-flow" aria-label="Production data path">
+        {proofFlow.map((step, index) => (
+          <span key={step}>
+            <code>{step}</code>
+            {index < proofFlow.length - 1 ? <ArrowRight aria-hidden="true" size={13} /> : null}
+          </span>
+        ))}
       </div>
       <div className="infra-grid">
         <article>
@@ -1537,8 +1575,13 @@ function InfrastructureView({
         </button>
         <p>
           Three concurrent proposals share one idempotency key. DSQL unique
-          index handling collapses them to one proposal and one execution.
+          index handling plus optimistic retries collapses them to one proposal
+          and one execution.
         </p>
+      </div>
+      <div className="section-heading-row infra-subheading">
+        <h3>Live table row counts</h3>
+        <span>queried from Aurora DSQL</span>
       </div>
       <div className="row-count-grid">
         {(infrastructure?.rowCounts ?? []).map((row) => (

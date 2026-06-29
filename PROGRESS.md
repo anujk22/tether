@@ -1044,3 +1044,43 @@ Next action:
   - `region=us-east-1`
   - `auth=IAM token auth`
   - live row counts for `action_proposals`, `approvals`, `entity_versions`, `operation_traces`, and `audit_events`.
+
+## 2026-06-29 - P1 B2B Copy + Aurora DSQL Proof UI
+
+### Changes
+
+- Updated the landing hero value line verbatim:
+  - "Built for support, finance, and operations teams that need to govern AI agent writes — refunds, customer state, payments — before trusting agents in production."
+- Added the Aurora DSQL causal value prop on the landing architecture section:
+  - exactly-once execution and exact rollback depend on immutable versioned DSQL transactions, strong consistency, and a unique idempotency key
+  - without that strongly-consistent ledger, finance cannot trust that a refund will not fire twice
+- Added a visible console truth boundary:
+  - real: policy gate, approvals, versioning, rollback, idempotency, and Aurora DSQL writes
+  - simulated: AI agent, payment processor, support, and CRM side effects
+- Expanded the Aurora DSQL console view with:
+  - live connection status, region, IAM auth, consistency, isolation, and Vercel serverless runtime label
+  - explicit `Vercel -> Next.js route handlers -> Aurora DSQL -> action_proposals -> approvals -> entity_versions -> operation_traces -> audit_events` flow
+  - live table row counts labeled as queried from Aurora DSQL
+  - retry proof copy tying DSQL unique-index handling and optimistic retries to one proposal / one execution
+- Kept the console shell/sidebar on the same near-black panel family as the home cards for palette continuity.
+- No lifecycle backend logic was changed.
+
+### Verification
+
+- `pnpm exec tsc --noEmit` passed.
+- `pnpm lint` passed with no warnings.
+- Browser QA using the `browse` skill captured screenshots under `/tmp/tether-p1-proof-qa-wait-1782753971/`.
+- Text checks passed for:
+  - landing B2B value line
+  - no fake trusted-by/testimonial/demo-booking copy
+  - console real-vs-simulated truth boundary
+  - infrastructure flow
+  - Aurora DSQL exactly-once / refund-will-not-fire-twice claim
+  - live `connected`, `us-east-1`, and `IAM token auth` status
+- Playwright viewport checks passed with no horizontal overflow and no forbidden fake SaaS copy at:
+  - `/` `1440x900`
+  - `/console?view=infrastructure` `1440x900`
+  - `/` `1920x1080`
+  - `/console?view=infrastructure` `1920x1080`
+  - `/` `390x844`
+  - `/console?view=infrastructure` `390x844`

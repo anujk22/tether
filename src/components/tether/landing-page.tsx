@@ -303,9 +303,9 @@ export function LandingPage() {
                 <em>that act</em>
               </h1>
               <p>
-                Tether keeps every agent safe, aligned, and effective. Gate actions.
-                Approve with confidence. Record everything. Rollback when needed.
-                Govern at scale.
+                Built for support, finance, and operations teams that need to govern
+                AI agent writes — refunds, customer state, payments — before trusting
+                agents in production.
               </p>
               <div className="hero-actions">
                 <a className="button button-light" href="/console">
@@ -350,8 +350,13 @@ export function LandingPage() {
               <span>Built for how agents work</span>
               <h2>Mission control for your agent ecosystem.</h2>
               <p>
-                Tether sits between your agents and the tools, APIs, and data they
-                use, providing policy, visibility, and control across every action.
+                Tether guarantees exactly-once execution and exact rollback because
+                every action is an immutable, versioned transaction in Aurora DSQL:
+                strong consistency plus a unique idempotency key.
+              </p>
+              <p>
+                Without a strongly-consistent ledger, you cannot promise a finance
+                team a refund will not fire twice.
               </p>
               <a href="#architecture">
                 See the console preview
