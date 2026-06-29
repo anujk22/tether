@@ -61,6 +61,7 @@ const assets = {
   bigMoon: "/tether-assets/AstroBigMoonWithAsteroidsToLeft.png",
   gated: "/tether-assets/AstroGated.png",
   check: "/tether-assets/AstroMiniCheck.png",
+  record: "/tether-assets/AstrorecordImage.png",
   rollback: "/tether-assets/AstroMiniRollback.png",
   tiny: "/tether-assets/AstronautForwardMiniIconTiny.png",
   moon: "/tether-assets/AstronautOnMiniMoonNoEffects.png",
@@ -92,7 +93,7 @@ const features = [
   {
     title: "Record",
     body: "Capture every action with immutable logs.",
-    visual: assets.tiny,
+    visual: assets.record,
   },
   {
     title: "Rollback",
@@ -102,7 +103,7 @@ const features = [
   {
     title: "Govern",
     body: "Policies, permissions, and guardrails at scale.",
-    visual: assets.single,
+    visual: assets.moon,
   },
 ];
 
@@ -223,18 +224,9 @@ function LogoWord({ name }: { name: string }) {
   );
 }
 
-function StationScene({
-  dashboard,
-  loading,
-}: {
-  dashboard: DashboardData | null;
-  loading: boolean;
-}) {
-  const action = dashboard?.actions[0];
-  const status = action?.status;
-
+function StationScene() {
   return (
-    <div className="station-scene" aria-label="Live Tether system status">
+    <div className="station-scene" aria-label="Tether orbital control station">
       <div className="star-field" />
       <svg className="orbit orbit-one" viewBox="0 0 620 300">
         <ellipse cx="310" cy="150" rx="270" ry="86" />
@@ -256,34 +248,25 @@ function StationScene({
         alt=""
         className="hero-astro hero-astro-a"
         height={587}
-        src={assets.tiny}
+        src={assets.single}
         width={507}
       />
       <Astro
         alt=""
         className="hero-astro hero-astro-b"
         height={587}
-        src={assets.tiny}
+        src={assets.single}
         width={507}
       />
       <Astro
         alt=""
         className="hero-astro hero-astro-c"
         height={587}
-        src={assets.tiny}
+        src={assets.single}
         width={507}
       />
       <div className="planet planet-a" aria-hidden="true" />
       <div className="planet planet-b" aria-hidden="true" />
-      <div className="system-status">
-        <small>DSQL status</small>
-        <span>{loading ? "Connecting to ledger" : statusLabel(status)}</span>
-        <code>
-          {dashboard
-            ? `v${dashboard.entity.version_number} · traces ${dashboard.traces.length} · actions ${dashboard.actions.length}`
-            : "waiting for Aurora DSQL"}
-        </code>
-      </div>
     </div>
   );
 }
@@ -429,14 +412,12 @@ function MoonPanel() {
 
 export function LandingPage() {
   const [dashboard, setDashboard] = useState<DashboardData | null>(null);
-  const [loading, setLoading] = useState(true);
   const [busy, setBusy] = useState<string | null>(null);
   const [lastEvent, setLastEvent] = useState("Live DSQL ledger connected.");
 
   async function refreshDashboard() {
     const nextDashboard = await fetchJson<DashboardData>("/v1/dashboard");
     setDashboard(nextDashboard);
-    setLoading(false);
     return nextDashboard;
   }
 
@@ -448,10 +429,8 @@ export function LandingPage() {
         const nextDashboard = await fetchJson<DashboardData>("/v1/dashboard");
         if (!active) return;
         setDashboard(nextDashboard);
-        setLoading(false);
       } catch (error) {
         if (!active) return;
-        setLoading(false);
         setLastEvent(error instanceof Error ? error.message : "Dashboard fetch failed.");
       }
     }
@@ -561,7 +540,7 @@ export function LandingPage() {
             </div>
           </div>
         </div>
-        <StationScene dashboard={dashboard} loading={loading} />
+        <StationScene />
       </section>
 
       <section className="feature-band" id="product" aria-label="Tether capabilities">

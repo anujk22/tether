@@ -16,7 +16,8 @@
   --radius-sm: 8px;
   --radius-md: 12px;
   --radius-lg: 16px;
-  --max-page: 1232px;
+  --page-gutter: clamp(16px, 4vw, 56px);
+  --max-page: 1504px;
 }
 
 @theme inline {
@@ -78,7 +79,7 @@ input:focus-visible {
 }
 
 .site-shell {
-  width: min(var(--max-page), calc(100% - 64px));
+  width: min(var(--max-page), calc(100% - (var(--page-gutter) * 2)));
   margin: 0 auto;
   padding: 22px 0 28px;
 }
@@ -87,7 +88,7 @@ input:focus-visible {
   display: grid;
   align-items: center;
   gap: 24px;
-  grid-template-columns: 220px 1fr auto;
+  grid-template-columns: minmax(190px, 0.72fr) minmax(380px, 1fr) auto;
   min-height: 48px;
   position: relative;
   z-index: 3;
@@ -199,16 +200,16 @@ input:focus-visible {
 .hero-section {
   display: grid;
   align-items: center;
-  gap: 28px;
-  grid-template-columns: minmax(420px, 0.84fr) minmax(520px, 1.16fr);
-  min-height: 500px;
+  gap: clamp(24px, 5vw, 84px);
+  grid-template-columns: minmax(0, 0.86fr) minmax(420px, 1.14fr);
+  min-height: clamp(500px, 42vw, 680px);
   padding: 28px 0 12px;
   position: relative;
 }
 
 .hero-copy {
   min-width: 0;
-  padding-left: 36px;
+  padding-left: clamp(0px, 2.4vw, 36px);
   position: relative;
   z-index: 2;
 }
@@ -217,7 +218,7 @@ input:focus-visible {
   margin: 0;
   color: var(--white);
   font-family: var(--font-display), Georgia, serif;
-  font-size: clamp(54px, 5.25vw, 78px);
+  font-size: 5.375rem;
   font-weight: 500;
   letter-spacing: -0.035em;
   line-height: 0.95;
@@ -248,7 +249,8 @@ input:focus-visible {
 }
 
 .trusted-row {
-  width: min(580px, calc(100vw - 120px));
+  width: 100%;
+  max-width: 620px;
   margin-top: 34px;
 }
 
@@ -307,7 +309,7 @@ input:focus-visible {
 }
 
 .station-scene {
-  min-height: 440px;
+  min-height: clamp(430px, 36vw, 560px);
   overflow: hidden;
   position: relative;
 }
@@ -330,7 +332,7 @@ input:focus-visible {
 }
 
 .star-field {
-  mask-image: radial-gradient(circle at 52% 45%, black 0 45%, transparent 78%);
+  mask-image: radial-gradient(circle at 48% 44%, black 0 58%, transparent 86%);
 }
 
 .star-field::before,
@@ -357,22 +359,25 @@ input:focus-visible {
 }
 
 .orbit-one {
-  inset: 14px 4px auto auto;
-  width: 650px;
-  transform: rotate(-8deg);
+  left: -18px;
+  top: 28px;
+  width: min(780px, 118%);
+  transform: rotate(-14deg);
 }
 
 .orbit-two {
-  inset: 38px -15px auto auto;
-  width: 620px;
-  transform: rotate(17deg);
+  left: -94px;
+  top: 96px;
+  width: min(850px, 130%);
+  transform: rotate(13deg);
 }
 
 .orbit-three {
-  inset: 130px 70px auto auto;
-  width: 520px;
+  left: 10px;
+  top: 206px;
+  width: min(720px, 108%);
   opacity: 0.55;
-  transform: rotate(2deg);
+  transform: rotate(-2deg);
 }
 
 .space-station {
@@ -585,10 +590,10 @@ input:focus-visible {
 }
 
 .planet-a {
-  width: 34px;
-  height: 34px;
-  right: 92px;
-  top: 34px;
+  width: 30px;
+  height: 30px;
+  right: 88px;
+  top: 48px;
   background:
     radial-gradient(circle at 34% 30%, #f4f4f4 0 16%, transparent 17%),
     linear-gradient(135deg, #e4e4e4, #686868);
@@ -598,47 +603,9 @@ input:focus-visible {
 .planet-b {
   width: 26px;
   height: 26px;
-  right: 152px;
-  top: 316px;
+  right: 176px;
+  top: 344px;
   background: linear-gradient(135deg, #f4f4f4, #5c5c5c);
-}
-
-.system-status {
-  display: grid;
-  gap: 8px;
-  right: 155px;
-  bottom: 36px;
-  min-width: 156px;
-  border: 1px solid var(--line-bright);
-  border-radius: var(--radius-sm);
-  background: rgb(18 18 18 / 0.74);
-  box-shadow: var(--shadow);
-  padding: 12px 14px;
-  position: absolute;
-}
-
-.system-status small {
-  color: var(--faint);
-  font-family: var(--font-mono), ui-monospace, monospace;
-  font-size: 9px;
-  font-weight: 600;
-  letter-spacing: 0.22em;
-  text-transform: uppercase;
-}
-
-.system-status span {
-  color: var(--muted);
-  font-size: 11px;
-}
-
-.system-status span::before {
-  content: "";
-  display: inline-block;
-  width: 7px;
-  height: 7px;
-  margin-right: 8px;
-  border-radius: 50%;
-  background: #cfcfcf;
 }
 
 .feature-band {
@@ -659,7 +626,7 @@ input:focus-visible {
   align-content: start;
   gap: 14px;
   border-right: 1px dotted var(--line-bright);
-  padding: 26px 34px 22px;
+  padding: clamp(22px, 2.2vw, 34px);
 }
 
 .feature-card:last-child {
@@ -715,7 +682,7 @@ input:focus-visible {
 .mission-section {
   display: grid;
   gap: 22px;
-  grid-template-columns: minmax(300px, 0.55fr) minmax(500px, 1fr);
+  grid-template-columns: minmax(280px, 0.48fr) minmax(0, 1fr);
   margin-top: 28px;
 }
 
@@ -730,7 +697,7 @@ input:focus-visible {
   margin: 20px 0 0;
   color: var(--white);
   font-family: var(--font-display), Georgia, serif;
-  font-size: clamp(36px, 3.2vw, 52px);
+  font-size: 3.25rem;
   font-weight: 500;
   letter-spacing: -0.035em;
   line-height: 0.98;
@@ -761,6 +728,7 @@ input:focus-visible {
   min-height: 318px;
   align-content: center;
   gap: 16px;
+  min-width: 0;
   overflow: hidden;
   border: 1px solid var(--line);
   border-radius: var(--radius-md);
@@ -945,18 +913,18 @@ input:focus-visible {
 }
 
 .carousel-arrow.left {
-  left: -42px;
+  left: max(-42px, calc(var(--page-gutter) * -0.7));
 }
 
 .carousel-arrow.right {
-  right: -42px;
+  right: max(-42px, calc(var(--page-gutter) * -0.7));
 }
 
 .launch-card {
   display: grid;
   align-items: center;
   gap: 34px;
-  grid-template-columns: 1fr 0.8fr 0.6fr;
+  grid-template-columns: minmax(280px, 0.85fr) minmax(260px, 1fr) minmax(200px, 0.58fr);
   min-height: 210px;
   overflow: hidden;
   border: 1px solid var(--line);
@@ -965,13 +933,13 @@ input:focus-visible {
     linear-gradient(90deg, rgb(255 255 255 / 0.06), transparent 32%),
     var(--panel);
   margin-top: 24px;
-  padding: 0 64px 0 0;
+  padding: 0 clamp(24px, 4vw, 64px) 0 0;
   position: relative;
 }
 
 .moon-panel {
   height: 210px;
-  min-width: 420px;
+  min-width: 0;
   overflow: hidden;
   position: relative;
 }
@@ -1089,7 +1057,7 @@ input:focus-visible {
 .site-footer {
   display: grid;
   gap: 32px;
-  grid-template-columns: minmax(240px, 1.5fr) repeat(4, minmax(100px, 0.55fr)) minmax(210px, 0.9fr);
+  grid-template-columns: minmax(240px, 1.4fr) repeat(4, minmax(96px, 0.5fr)) minmax(210px, 0.85fr);
   padding: 28px 24px 8px;
 }
 
@@ -1218,44 +1186,34 @@ input:focus-visible {
 }
 
 .hero-station {
-  width: min(500px, 70vw);
+  width: min(700px, 86%);
   filter: drop-shadow(0 28px 42px rgb(0 0 0 / 0.72));
   left: 50%;
   position: absolute;
-  top: 10px;
-  transform: translateX(-24%);
+  top: 22px;
+  transform: translateX(-50%);
   z-index: 1;
 }
 
 .hero-astro {
   position: absolute;
-  width: 46px;
+  width: 38px;
   z-index: 2;
 }
 
 .hero-astro-a {
-  left: 190px;
-  top: 94px;
+  left: 22px;
+  top: 92px;
 }
 
 .hero-astro-b {
-  left: 132px;
-  top: 252px;
+  left: 78px;
+  top: 254px;
 }
 
 .hero-astro-c {
-  right: 36px;
-  top: 168px;
-}
-
-.system-status {
-  z-index: 3;
-}
-
-.system-status code {
-  color: var(--faint);
-  font-family: var(--font-mono), ui-monospace, monospace;
-  font-size: 10px;
+  right: 44px;
+  top: 238px;
 }
 
 .feature-glyph {
@@ -1273,15 +1231,20 @@ input:focus-visible {
   max-width: 128px;
 }
 
-.feature-art-approve,
-.feature-art-govern {
+.feature-art-approve {
   max-height: 88px;
   max-width: 78px;
 }
 
 .feature-art-record {
-  max-height: 74px;
-  max-width: 66px;
+  max-height: 84px;
+  max-width: 156px;
+}
+
+.feature-art-govern {
+  max-height: 88px;
+  max-width: 136px;
+  transform: scaleX(-1);
 }
 
 .feature-art-rollback {
@@ -1303,7 +1266,7 @@ input:focus-visible {
 .live-ledger-row {
   display: grid;
   gap: 8px;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(132px, 1fr));
 }
 
 .live-ledger-row span {
@@ -1388,7 +1351,7 @@ input:focus-visible {
 .live-actions {
   display: grid;
   gap: 7px;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(112px, 1fr));
 }
 
 .live-actions button {
@@ -1483,11 +1446,54 @@ input:focus-visible {
   top: 4px;
 }
 
-@media (max-width: 900px) {
-  .site-shell {
-    width: min(100% - 36px, var(--max-page));
+@media (min-width: 1500px) {
+  .hero-copy h1 {
+    font-size: 5.8rem;
   }
 
+  .mission-copy h2,
+  .launch-card h2 {
+    font-size: 3.5rem;
+  }
+}
+
+@media (max-width: 1180px) {
+  .site-header {
+    grid-template-columns: minmax(180px, 0.7fr) minmax(320px, 1fr) auto;
+  }
+
+  .site-header nav {
+    gap: 18px;
+  }
+
+  .hero-copy h1 {
+    font-size: 4.75rem;
+  }
+
+  .feature-band {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  .feature-card:nth-child(3n) {
+    border-right: 0;
+  }
+
+  .testimonial-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .site-footer {
+    grid-template-columns: minmax(220px, 1fr) repeat(3, minmax(110px, 0.7fr));
+    padding-inline: 0;
+  }
+
+  .newsletter {
+    border-left: 0;
+    padding-left: 0;
+  }
+}
+
+@media (max-width: 1040px) {
   .site-header {
     grid-template-columns: 1fr auto;
   }
@@ -1496,9 +1502,32 @@ input:focus-visible {
     display: none;
   }
 
-  .hero-section,
   .mission-section,
   .launch-card {
+    grid-template-columns: 1fr;
+  }
+
+  .mission-copy {
+    min-height: 0;
+    border-right: 0;
+    padding-right: 0;
+  }
+
+  .launch-card {
+    padding: 0 24px 28px;
+  }
+
+  .moon-panel {
+    width: 100%;
+  }
+}
+
+@media (max-width: 900px) {
+  .site-shell {
+    width: min(var(--max-page), calc(100% - 36px));
+  }
+
+  .hero-section {
     grid-template-columns: 1fr;
   }
 
@@ -1515,17 +1544,16 @@ input:focus-visible {
   }
 
   .feature-card {
+    border-right: 1px dotted var(--line-bright);
     border-bottom: 1px dotted var(--line-bright);
+  }
+
+  .feature-card:nth-child(3n) {
+    border-right: 1px dotted var(--line-bright);
   }
 
   .feature-card:nth-child(2n) {
     border-right: 0;
-  }
-
-  .mission-copy {
-    min-height: 0;
-    border-right: 0;
-    padding-right: 0;
   }
 
   .testimonial-grid {
@@ -1536,28 +1564,14 @@ input:focus-visible {
     display: none;
   }
 
-  .launch-card {
-    padding: 0 24px 28px;
-  }
-
-  .moon-panel {
-    width: 100%;
-  }
-
   .site-footer {
     grid-template-columns: repeat(2, minmax(0, 1fr));
-    padding-inline: 0;
-  }
-
-  .newsletter {
-    border-left: 0;
-    padding-left: 0;
   }
 }
 
 @media (max-width: 720px) {
   .site-shell {
-    width: min(100% - 24px, var(--max-page));
+    width: min(var(--max-page), calc(100% - 24px));
     padding-top: 14px;
   }
 
@@ -1585,7 +1599,12 @@ input:focus-visible {
   }
 
   .hero-copy h1 {
-    font-size: clamp(52px, 16vw, 72px);
+    font-size: 4rem;
+  }
+
+  .mission-copy h2,
+  .launch-card h2 {
+    font-size: 2.75rem;
   }
 
   .trusted-row > div {
@@ -1601,6 +1620,12 @@ input:focus-visible {
     margin-inline: -12px;
   }
 
+  .hero-station {
+    width: min(430px, 105%);
+    top: 20px;
+    transform: translateX(-50%);
+  }
+
   .space-station {
     left: 44%;
     top: 110px;
@@ -1608,15 +1633,26 @@ input:focus-visible {
     transform-origin: center top;
   }
 
-  .orbit-one,
-  .orbit-two,
-  .orbit-three {
-    right: -160px;
+  .orbit-one {
+    left: -180px;
+    top: 44px;
+    width: 660px;
   }
 
-  .system-status {
-    right: 24px;
-    bottom: 36px;
+  .orbit-two {
+    left: -216px;
+    top: 102px;
+    width: 720px;
+  }
+
+  .orbit-three {
+    left: -156px;
+    top: 214px;
+    width: 620px;
+  }
+
+  .live-event {
+    white-space: normal;
   }
 
   .feature-band {
@@ -1667,6 +1703,52 @@ input:focus-visible {
 
   .footer-brand small {
     margin-top: 24px;
+  }
+}
+
+@media (max-width: 480px) {
+  .brand-lockup {
+    gap: 9px;
+    font-size: 12px;
+    letter-spacing: 0.18em;
+  }
+
+  .pixel-mark {
+    width: 22px;
+    height: 24px;
+    grid-template-columns: repeat(4, 3px);
+    grid-template-rows: repeat(4, 3px);
+  }
+
+  .hero-copy h1 {
+    font-size: 3.25rem;
+  }
+
+  .hero-copy p {
+    font-size: 15px;
+  }
+
+  .hero-actions .button,
+  .header-actions .button {
+    gap: 10px;
+    padding-inline: 12px;
+  }
+
+  .live-ledger-row,
+  .live-actions {
+    grid-template-columns: 1fr;
+  }
+
+  .trace-tape div {
+    grid-template-columns: 58px minmax(92px, 1fr);
+  }
+
+  .trace-tape p {
+    grid-column: 1 / -1;
+  }
+
+  .moon-image {
+    left: -88px;
   }
 }
 
