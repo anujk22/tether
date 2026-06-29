@@ -1709,11 +1709,22 @@ input:focus-visible {
 .role-selector select {
   min-height: 26px;
   border: 0;
-  background: transparent;
   color: var(--text-primary);
   font-family: var(--font-mono), ui-monospace, monospace;
   font-size: var(--fz-xs);
   outline: 0;
+  appearance: none;
+  -webkit-appearance: none;
+  cursor: pointer;
+  padding-right: 18px;
+  background: transparent
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%239ca3af' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E")
+    no-repeat right 1px center;
+}
+
+.role-selector select option {
+  background: var(--bg-elevated);
+  color: var(--text-primary);
 }
 
 .header-metrics span {
@@ -4820,8 +4831,8 @@ input:focus-visible {
   position: relative;
   border: 1px solid rgba(255, 255, 255, 0.15);
   border-radius: var(--radius-lg);
-  background-color: var(--bg-inset);
-  background-image: 
+  background-color: var(--bg-panel);
+  background-image:
     radial-gradient(circle at 100% 0%, rgba(255, 255, 255, 0.03) 0%, transparent 60%),
     radial-gradient(rgba(255, 255, 255, 0.015) 1px, transparent 0);
   background-size: 100% 100%, 20px 20px;
@@ -4984,7 +4995,7 @@ input:focus-visible {
 }
 
 .disaster-terminal-card {
-  background: rgba(8, 8, 8, 0.85);
+  background: #080808;
   border: 1px solid rgba(255, 255, 255, 0.12);
   border-radius: var(--radius-md);
   font-family: var(--font-mono), monospace;
@@ -4993,6 +5004,43 @@ input:focus-visible {
   display: flex;
   flex-direction: column;
   min-height: 170px;
+}
+
+.terminal-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 18px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.terminal-dot {
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.terminal-dot.red {
+  background: #ff5f57;
+}
+
+.terminal-dot.yellow {
+  background: #febc2e;
+}
+
+.terminal-dot.green {
+  background: #28c840;
+}
+
+.terminal-title {
+  margin-left: 6px;
+  font-family: var(--font-mono), monospace;
+  font-size: 9px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--text-tertiary);
+  font-weight: 600;
 }
 
 .disaster-terminal-card .terminal-body {
@@ -5062,7 +5110,8 @@ input:focus-visible {
 
 /* Center Lower: Topology Diagram */
 .disaster-topology-card {
-  background: rgba(8, 8, 8, 0.85);
+  flex: 1;
+  background: #080808;
   border: 1px solid rgba(255, 255, 255, 0.12);
   border-radius: var(--radius-md);
   padding: 16px;
@@ -5257,46 +5306,57 @@ input:focus-visible {
 .topology-tree-connector {
   position: relative;
   width: 100%;
+  height: 48px;
   margin: 2px 0;
 }
 
-.tree-upper-row {
-  display: flex;
-  justify-content: space-between;
-  width: 100%;
-  height: 24px;
+/* Dashed lines forming the ungoverned-path tree. Verticals drop from the
+   center of each top node (min-width 140px → center ≈ 70px from each edge),
+   meet a horizontal rail, and a final vertical runs down to the TETHER node. */
+.tree-line {
+  position: absolute;
 }
 
-.tree-node-spacer {
-  width: 140px;
-  display: flex;
-  justify-content: center;
-  flex-shrink: 0;
-}
-
-.tree-arrow-spacer {
-  flex: 1;
-}
-
-.tree-line-v {
-  width: 1px;
-  height: 100%;
+.tree-line-left-vertical,
+.tree-line-right-vertical,
+.tree-line-center-vertical-top,
+.tree-line-center-vertical-bottom {
+  height: 26px;
   border-left: 1px dashed var(--state-rejected);
 }
 
-.tree-horizontal-line {
-  position: absolute;
-  left: 70px; /* Center of left spacer (140px / 2) */
-  right: 70px; /* Center of right spacer (140px / 2) */
-  top: 24px;
-  height: 1px;
+.tree-line-left-vertical {
+  left: 70px;
+  top: 0;
+}
+
+.tree-line-right-vertical {
+  right: 70px;
+  top: 0;
+}
+
+.tree-line-center-vertical-top {
+  left: 50%;
+  top: 0;
+}
+
+.tree-line-horizontal {
+  left: 70px;
+  right: 70px;
+  top: 26px;
   border-top: 1px dashed var(--state-rejected);
+}
+
+.tree-line-center-vertical-bottom {
+  left: 50%;
+  top: 26px;
+  height: 22px;
 }
 
 .tree-bypassed-badge {
   position: absolute;
   left: 50%;
-  top: 24px;
+  top: 26px;
   transform: translate(-50%, -50%);
   width: 16px;
   height: 16px;
@@ -5315,13 +5375,6 @@ input:focus-visible {
   font-weight: bold;
   line-height: 1;
   margin-top: -1px;
-}
-
-.tree-lower-line {
-  width: 1px;
-  height: 20px;
-  margin: 0 auto;
-  border-left: 1px dashed var(--state-rejected);
 }
 
 .topology-status-row {
@@ -5352,12 +5405,13 @@ input:focus-visible {
 .disaster-col-right {
   display: flex;
   flex-direction: column;
-  justify-content: space-between;
+  justify-content: flex-start;
   gap: 20px;
 }
 
 .disaster-summary-card {
-  background: rgba(8, 8, 8, 0.85);
+  flex: 1;
+  background: #080808;
   border: 1px solid rgba(255, 255, 255, 0.12);
   border-radius: var(--radius-md);
   padding: 20px;
@@ -5388,8 +5442,10 @@ input:focus-visible {
 }
 
 .disaster-checklist {
+  flex: 1;
   display: flex;
   flex-direction: column;
+  justify-content: space-between;
   gap: 12px;
   list-style: none;
   padding: 0;
