@@ -145,11 +145,13 @@ function StationScene() {
   return (
     <div className="station-scene" aria-label="Tether orbital control station">
       <div className="star-field" />
-      <svg className="orbit orbit-one" viewBox="0 0 620 300">
-        <ellipse cx="310" cy="150" rx="270" ry="86" />
-      </svg>
-      <svg className="orbit orbit-two" viewBox="0 0 620 300">
-        <ellipse cx="310" cy="150" rx="235" ry="112" />
+      <svg className="orbit-map" viewBox="0 0 820 520" aria-hidden="true">
+        <path d="M84 158 C178 62 338 112 460 84 C600 48 780 84 724 188 C690 250 574 250 482 226" />
+        <path d="M92 184 C44 210 52 272 125 270 C184 268 142 198 204 202" />
+        <path d="M22 342 C150 244 288 306 412 312 C548 318 646 286 796 330" />
+        <path d="M224 214 C252 264 184 302 188 356 C192 412 128 426 76 404" />
+        <path d="M510 238 C578 236 600 294 650 252 C682 226 720 232 764 210" />
+        <path d="M544 330 C610 330 654 350 704 396" />
       </svg>
       <Astro
         alt=""
@@ -179,6 +181,17 @@ function StationScene() {
         src={assets.single}
         width={507}
       />
+      <Astro
+        alt=""
+        className="hero-astro hero-astro-d hero-astro-left"
+        height={760}
+        src={assets.right}
+        width={538}
+      />
+      <div className="hero-satellite" aria-hidden="true">
+        <span />
+        <span />
+      </div>
       <div className="planet planet-a" aria-hidden="true" />
       <div className="planet planet-b" aria-hidden="true" />
     </div>
