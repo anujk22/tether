@@ -4783,202 +4783,534 @@ input:focus-visible {
   box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--state-executed) 22%, transparent);
 }
 
-.guided-disaster {
-  display: grid;
+/* Guided Disaster Redesign - Cold Open Brand World */
+.guided-disaster-redesign {
+  position: relative;
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  border-radius: var(--radius-lg);
+  background-color: var(--bg-inset);
+  background-image: 
+    radial-gradient(circle at 100% 0%, rgba(255, 255, 255, 0.03) 0%, transparent 60%),
+    radial-gradient(rgba(255, 255, 255, 0.015) 1px, transparent 0);
+  background-size: 100% 100%, 20px 20px;
+  padding: 32px;
+  overflow: hidden;
   min-height: min(620px, calc(100vh - 220px));
-  align-items: center;
-  grid-template-columns: minmax(300px, 0.95fr) minmax(420px, 1.25fr) minmax(240px, 0.8fr);
-  gap: 32px;
-  padding: 40px;
-  border: 1px solid color-mix(in srgb, var(--state-rejected) 18%, transparent);
-  box-shadow: none;
-  background:
-    radial-gradient(circle at 50% 50%, color-mix(in srgb, var(--state-rejected) 6%, transparent), var(--bg-inset));
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
+.space-branding-bg {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  pointer-events: none;
+  overflow: hidden;
+  z-index: 1;
+}
+
+.brand-moon-decor {
+  position: absolute;
+  top: -20px;
+  right: 4%;
+  opacity: 0.14;
+  transform: rotate(-12deg);
+  filter: drop-shadow(0 0 20px rgba(255, 255, 255, 0.05));
+}
+
+.brand-satellite-decor {
+  position: absolute;
+  bottom: 20px;
+  right: 18%;
+  opacity: 0.14;
+  transform: rotate(18deg);
+  filter: drop-shadow(0 0 15px rgba(255, 255, 255, 0.05));
+}
+
+.guided-disaster-grid {
+  display: grid;
+  grid-template-columns: 1fr 1.15fr 0.95fr;
+  gap: 28px;
+  position: relative;
+  z-index: 2;
+  align-items: stretch;
+}
+
+/* Left Column: Narrative with Astronaut */
+.disaster-col-narrative {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  gap: 24px;
 }
 
 .disaster-alert-tag {
-  background: color-mix(in srgb, var(--state-rejected) 15%, transparent);
+  background: color-mix(in srgb, var(--state-rejected) 12%, transparent);
   color: var(--state-rejected);
-  border: 1px solid color-mix(in srgb, var(--state-rejected) 35%, transparent);
+  border: 1px solid color-mix(in srgb, var(--state-rejected) 25%, transparent);
   padding: 4px 8px;
   border-radius: 4px;
-  font-family: var(--font-mono), ui-monospace, monospace;
-  font-size: 11px;
+  font-family: var(--font-mono), monospace;
+  font-size: 10px;
   font-weight: 600;
-  letter-spacing: 0.1em;
+  letter-spacing: 0.08em;
   width: max-content;
   display: inline-block;
+  margin-bottom: 12px;
 }
 
-.guided-disaster-copy h2 {
-  max-width: 560px;
-  margin: 16px 0 0;
-  color: var(--text-primary);
+.disaster-col-narrative h2 {
   font-family: var(--font-geist-sans), Arial, sans-serif;
-  font-size: clamp(2.2rem, 3.8vw, 4.4rem);
-  font-weight: 650;
+  font-size: clamp(2rem, 3vw, 3.2rem);
+  font-weight: 750;
+  line-height: 1.1;
   letter-spacing: -0.02em;
-  line-height: 0.96;
+  color: var(--text-primary);
+  margin: 0;
 }
 
-.guided-disaster-copy p {
-  margin: 20px 0 0;
+.disaster-col-narrative h2 span {
+  display: block;
+}
+
+.disaster-col-narrative h2 .text-leak {
+  color: var(--state-rejected);
+  display: block;
+  margin-top: 4px;
+}
+
+.disaster-col-narrative p {
   color: var(--text-secondary);
-  font-size: var(--fz-base);
-  line-height: 1.6;
+  font-size: var(--fz-sm);
+  line-height: 1.55;
+  margin: 12px 0 0 0;
 }
 
-/* API Log Terminal styling */
-.guided-disaster-terminal {
-  background: var(--bg-base);
-  border: 1px solid var(--border-strong);
+.disaster-prevent-footer {
+  font-family: var(--font-mono), monospace;
+  font-size: 11px;
+  letter-spacing: 0.05em;
+  color: var(--text-tertiary);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 4px;
+}
+
+.disaster-prevent-footer .bullet {
+  color: var(--state-rejected);
+}
+
+.disaster-astro-card {
+  border: 1px dashed rgba(255, 255, 255, 0.15);
+  background: rgba(255, 255, 255, 0.015);
   border-radius: var(--radius-md);
-  font-family: var(--font-mono), ui-monospace, monospace;
-  overflow: hidden;
-  box-shadow: 0 12px 36px rgb(0 0 0 / 0.4);
-  align-self: stretch;
+  padding: 16px;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.disaster-astro-card .astro-img {
+  width: 72px;
+  height: 72px;
+  object-fit: contain;
+  filter: drop-shadow(0 4px 8px rgba(0, 0, 0, 0.3));
+}
+
+.disaster-astro-card .astro-card-caption {
   display: flex;
   flex-direction: column;
+  gap: 4px;
 }
 
-.terminal-header {
-  background: var(--bg-elevated);
-  border-bottom: 1px solid var(--border-subtle);
-  padding: 10px 14px;
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  flex: 0 0 auto;
-}
-
-.terminal-dot {
-  width: 8px;
-  height: 8px;
-  border-radius: 50%;
-}
-
-.terminal-dot.red { background: var(--state-rejected); }
-.terminal-dot.yellow { background: var(--state-approval); }
-.terminal-dot.green { background: var(--state-approved); }
-
-.terminal-title {
+.disaster-astro-card .astro-card-caption span {
+  font-family: var(--font-mono), monospace;
   font-size: 10px;
-  color: var(--text-tertiary);
-  letter-spacing: 0.08em;
-  font-weight: 600;
-  margin-left: 8px;
-}
-
-.terminal-body {
-  padding: 20px;
-  font-size: 12px;
-  line-height: 1.6;
-  flex: 1 1 auto;
-  overflow-y: auto;
-}
-
-.terminal-line {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  color: var(--text-mono);
-}
-
-.terminal-line.error {
-  color: color-mix(in srgb, var(--state-rejected) 85%, var(--text-mono));
-}
-
-.terminal-line .time {
-  color: var(--text-tertiary);
-}
-
-.terminal-line .method {
-  font-weight: 700;
-  color: var(--state-gated);
-}
-
-.terminal-line .path {
-  color: var(--text-secondary);
-  flex: 1;
-}
-
-.terminal-line .amount {
-  font-weight: 600;
   color: var(--text-primary);
-}
-
-.terminal-line .badge {
-  background: color-mix(in srgb, var(--state-approval) 14%, transparent);
-  color: var(--state-approval);
-  border: 1px solid color-mix(in srgb, var(--state-approval) 40%, transparent);
-  border-radius: 3px;
-  padding: 1px 5px;
-  font-size: 9px;
-  text-transform: uppercase;
-}
-
-.terminal-subline {
-  color: var(--text-tertiary);
-  margin-left: 20px;
-  font-size: 11px;
-  margin-bottom: 12px;
-}
-
-.terminal-subline.error-msg {
-  color: var(--state-rejected);
-  margin-left: 20px;
-  font-size: 11px;
   font-weight: 600;
-  margin-bottom: 12px;
+  letter-spacing: 0.02em;
+  line-height: 1.3;
 }
 
-/* Disaster Total Panel */
-.guided-disaster-total {
-  display: grid;
-  gap: 12px;
-  border: 1px solid color-mix(in srgb, var(--state-rejected) 34%, var(--border-subtle));
-  border-radius: var(--radius-lg);
-  background:
-    linear-gradient(135deg, color-mix(in srgb, var(--state-rejected) 12%, transparent), transparent 60%),
-    var(--bg-inset);
-  padding: 24px;
-}
-
-.guided-disaster-total > span {
-  color: var(--text-tertiary);
-  font-family: var(--font-mono), ui-monospace, monospace;
-  font-size: var(--fz-xs);
-  letter-spacing: 0.08em;
+.disaster-astro-card .astro-card-caption small {
+  font-family: var(--font-mono), monospace;
+  font-size: 9px;
+  color: var(--state-rejected);
+  letter-spacing: 0.05em;
   text-transform: uppercase;
 }
 
-.guided-disaster-total strong {
-  color: var(--state-rejected);
-  font-size: clamp(2.4rem, 3.8vw, 4.4rem);
-  font-weight: 650;
-  line-height: 1;
+/* Center Column: API Terminal & Topology */
+.disaster-col-center {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
 }
 
-.disaster-failure-list {
-  list-style: none;
-  margin: 16px 0 0;
-  padding: 0;
+.disaster-terminal-card {
+  background: rgba(8, 8, 8, 0.85);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: var(--radius-md);
+  font-family: var(--font-mono), monospace;
+  overflow: hidden;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4);
+  display: flex;
+  flex-direction: column;
+  min-height: 170px;
+}
+
+.disaster-terminal-card .terminal-body {
+  padding: 14px 18px;
   display: flex;
   flex-direction: column;
   gap: 10px;
 }
 
-.disaster-failure-list li {
+.terminal-row {
   display: flex;
   align-items: center;
-  gap: 8px;
-  font-size: 12px;
+  justify-content: space-between;
+  font-size: 11px;
+  line-height: 1.4;
+  color: var(--text-mono);
+  animation: terminalLineReveal 0.25s ease-out;
+}
+
+.terminal-row-left {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+}
+
+.terminal-row .time {
+  color: var(--text-tertiary);
+}
+
+.terminal-row .method {
+  color: var(--state-gated);
+  font-weight: 700;
+}
+
+.terminal-row .path {
   color: var(--text-secondary);
 }
 
-.disaster-failure-list li span {
-  font-weight: bold;
+.terminal-row .amount {
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.terminal-row .status-code {
+  color: var(--state-approved);
+}
+
+.terminal-row .badge-warning {
   color: var(--state-rejected);
+  font-weight: bold;
+}
+
+.terminal-row .tag-no-gate {
+  background: color-mix(in srgb, var(--state-rejected) 12%, transparent);
+  color: var(--state-rejected);
+  border: 1px solid color-mix(in srgb, var(--state-rejected) 25%, transparent);
+  font-size: 8px;
+  text-transform: uppercase;
+  padding: 1px 4px;
+  border-radius: 3px;
+  font-weight: 600;
+  letter-spacing: 0.05em;
+}
+
+/* Center Lower: Topology Diagram */
+.disaster-topology-card {
+  background: rgba(8, 8, 8, 0.85);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: var(--radius-md);
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.topology-title {
+  font-family: var(--font-mono), monospace;
+  font-size: 9px;
+  letter-spacing: 0.08em;
+  color: var(--text-tertiary);
+  text-transform: uppercase;
+  font-weight: 600;
+}
+
+.topology-container {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  align-items: center;
+  position: relative;
+}
+
+.topology-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  position: relative;
+}
+
+.topology-node {
+  background: var(--bg-elevated);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 4px;
+  padding: 6px 10px;
+  font-family: var(--font-mono), monospace;
+  font-size: 10px;
+  color: var(--text-primary);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  z-index: 2;
+  transition: all 0.3s ease;
+  min-width: 90px;
+  justify-content: center;
+}
+
+.topology-node[data-status="active"] {
+  border-color: var(--white);
+}
+
+.topology-node[data-status="unsafe"] {
+  border-color: var(--state-rejected);
+  color: var(--state-rejected);
+  background: color-mix(in srgb, var(--state-rejected) 4%, transparent);
+}
+
+.topology-node[data-status="bypassed"] {
+  border: 1px dashed rgba(255, 255, 255, 0.15);
+  background: rgba(255, 255, 255, 0.01);
+  color: var(--text-tertiary);
+}
+
+.topology-arrow {
+  flex: 1;
+  height: 1px;
+  background: repeating-linear-gradient(90deg, rgba(255, 255, 255, 0.12), rgba(255, 255, 255, 0.12) 3px, transparent 3px, transparent 6px);
+  position: relative;
+  margin: 0 6px;
+}
+
+.topology-arrow[data-unsafe="true"] {
+  background: repeating-linear-gradient(90deg, var(--state-rejected), var(--state-rejected) 3px, transparent 3px, transparent 6px);
+}
+
+.topology-arrow[data-unsafe="true"]::after {
+  content: "";
+  position: absolute;
+  right: -2px;
+  top: -2px;
+  width: 0;
+  height: 0;
+  border-top: 3px solid transparent;
+  border-bottom: 3px solid transparent;
+  border-left: 5px solid var(--state-rejected);
+}
+
+.topology-arrow-down {
+  width: 1px;
+  height: 16px;
+  background: repeating-linear-gradient(180deg, rgba(255, 255, 255, 0.12), rgba(255, 255, 255, 0.12) 3px, transparent 3px, transparent 6px);
+}
+
+/* Right Column: Failure Summary & Integrated Actions */
+.disaster-col-right {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  gap: 20px;
+}
+
+.disaster-summary-card {
+  background: rgba(8, 8, 8, 0.85);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: var(--radius-md);
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+
+.summary-title {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.summary-title span {
+  font-family: var(--font-mono), monospace;
+  font-size: 10px;
+  color: var(--text-tertiary);
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+
+.summary-title strong {
+  font-size: 32px;
+  font-weight: 800;
+  color: var(--state-rejected);
+  line-height: 1;
+}
+
+.disaster-checklist {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.disaster-checklist li {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 12px;
+  color: var(--text-tertiary);
+  transition: all 0.3s ease;
+}
+
+.disaster-checklist li[data-active="true"] {
+  color: var(--text-primary);
+}
+
+.disaster-checklist li .marker {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  font-size: 9px;
+  font-weight: bold;
+  color: var(--text-tertiary);
+  transition: all 0.3s ease;
+}
+
+.disaster-checklist li[data-active="true"] .marker {
+  border-color: var(--state-rejected);
+  background: color-mix(in srgb, var(--state-rejected) 10%, transparent);
+  color: var(--state-rejected);
+}
+
+.disaster-actions-card {
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  background: rgba(255, 255, 255, 0.02);
+  border-radius: var(--radius-md);
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.disaster-actions-card .actions-info {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.disaster-actions-card .actions-info strong {
+  font-family: var(--font-mono), monospace;
+  font-size: 10px;
+  color: var(--text-primary);
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+
+.disaster-actions-card .actions-info small {
+  font-size: 11px;
+  color: var(--text-secondary);
+}
+
+.disaster-actions-card .actions-buttons {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.disaster-actions-card .btn-restart {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: transparent;
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  color: var(--text-secondary);
+  font-size: 11px;
+  font-weight: 500;
+  padding: 6px 12px;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  transition: all 0.2s ease;
+  flex: 1;
+  justify-content: center;
+}
+
+.disaster-actions-card .btn-restart:hover {
+  color: var(--text-primary);
+  border-color: var(--text-primary);
+}
+
+.disaster-actions-card .btn-activate {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: var(--white);
+  border: 1px solid var(--white);
+  color: var(--bg-base);
+  font-size: 11px;
+  font-weight: 700;
+  padding: 6px 16px;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  transition: all 0.2s ease;
+  flex: 1.2;
+  justify-content: center;
+}
+
+.disaster-actions-card .btn-activate:hover {
+  background: var(--state-approved);
+  border-color: var(--state-approved);
+  color: #03130d;
+}
+
+/* Tether intercept notification on step 1 */
+.tether-intercept-alert {
+  background: color-mix(in srgb, var(--state-approved) 12%, transparent);
+  border: 1px solid color-mix(in srgb, var(--state-approved) 30%, transparent);
+  color: var(--state-approved);
+  padding: 8px 16px;
+  border-radius: var(--radius-sm);
+  font-family: var(--font-mono), monospace;
+  font-size: 11px;
+  letter-spacing: 0.05em;
+  margin-bottom: 20px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  text-transform: uppercase;
+}
+
+/* Animations */
+@keyframes pulse {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.4; transform: scale(0.9); }
+}
+
+@keyframes terminalLineReveal {
+  from { opacity: 0; transform: translateY(4px); }
+  to { opacity: 1; transform: translateY(0); }
 }
 
 /* Toggle Switch styling inside overlay */
@@ -5182,9 +5514,11 @@ input:focus-visible {
     max-width: 100%;
   }
 
-  .guided-disaster {
-    min-height: auto;
+  .guided-disaster-grid {
     grid-template-columns: 1fr;
+    padding: 24px;
+    gap: 20px;
+    overflow-y: auto;
   }
 
   .guided-demo-overlay {

@@ -1247,3 +1247,32 @@ Next action:
 
 - `pnpm exec tsc --noEmit` passed.
 - `pnpm lint` passed with no warnings.
+
+## 2026-06-29 - Guided Demo Step 0 Redesign
+
+### Changes
+
+- Redesigned the opening cold open screen (Step 0) of the guided demo (`/console?demo=guided&key=tetherdemo2026`).
+- Integrated Step 0 fully with the standard console cockpit shell, keeping the left navigation sidebar, metrics row (`MissionStrip`), and role selectors fully visible.
+- Built a dedicated `<GuidedColdOpen />` cockpit panel component in `src/components/tether/tether-console.tsx` that replaces the old static `GuidedDisasterPanel`.
+- Loaded official Tether space brand world assets:
+  - Floating background layer (`.space-branding-bg`) containing the mini-moon (`/tether-assets/minimoon.png`) and mini-satellite (`/tether-assets/minisatellite.png`).
+  - Embedded the astronaut on the moon graphic (`/tether-assets/AstronautOnMiniMoonNoEffects.png`) inside the narrative panel card.
+- Implemented clean "white aesthetics" for panels using crisp border frames (`border: 1px solid rgba(255, 255, 255, 0.15)`) and dot-grid alignments matching the homepage.
+- Implemented a sequential, animated log accumulator running at:
+  - 0.6s: first payment log ($1,250) + leak counts to `$1,250`.
+  - 1.6s: second duplicate log ([DUPLICATE]) + leak counts to `$2,500`.
+  - 2.7s: third duplicate log ([TRIPLE]) + leak counts to `$3,750`.
+  - 3.2s: locks final state, enabling the primary "Activate Tether" action button.
+- Integrated a thin-line architecture topology diagram mapping `AI Agent ➔ Raw Write ➔ Payments`, with the offline/bypassed `Tether Plane`.
+- Sync'd the checklist failures on the right column to progressively highlight synchronously with the logs timing.
+- Merged the guided overlay instructions into an integrated actions card in the right column, removing the floating bottom-right helper for Step 0.
+- Keyed `<GuidedColdOpen />` to the parent `restartKey` state to automatically re-mount the component and reset animations when clicking "Restart".
+- Added a notification banner on Step 1: `🛡️ Governed write path online · Tether intercept enabled`.
+- Replaced the old `.guided-disaster` classes in `src/app/globals.css` with clean, modern `.guided-disaster-redesign` styling parameters.
+
+### Verification
+
+- `npx tsc --noEmit` passed (0 compiler errors, 0 warnings).
+- `npm run lint` passed (0 eslint errors).
+- `npm run build` compiled successfully without warnings.

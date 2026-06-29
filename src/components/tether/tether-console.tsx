@@ -1648,79 +1648,248 @@ function InfrastructureView({
   );
 }
 
-function GuidedDisasterPanel() {
+function GuidedColdOpen({
+  onNext,
+  onRestart,
+  running,
+}: {
+  onNext: () => void;
+  onRestart: () => void;
+  running: boolean;
+}) {
+  const [visibleLogCount, setVisibleLogCount] = useState(0);
+  const [leakAmount, setLeakAmount] = useState(0);
+  const [locked, setLocked] = useState(false);
+
+  useEffect(() => {
+    const t1 = setTimeout(() => {
+      setVisibleLogCount(1);
+      setLeakAmount(1250);
+    }, 600);
+
+    const t2 = setTimeout(() => {
+      setVisibleLogCount(2);
+      setLeakAmount(2500);
+    }, 1600);
+
+    const t3 = setTimeout(() => {
+      setVisibleLogCount(3);
+      setLeakAmount(3750);
+    }, 2700);
+
+    const t4 = setTimeout(() => {
+      setLocked(true);
+    }, 3200);
+
+    return () => {
+      clearTimeout(t1);
+      clearTimeout(t2);
+      clearTimeout(t3);
+      clearTimeout(t4);
+    };
+  }, []);
+
   return (
-    <section className="console-panel guided-disaster" aria-label="Ungoverned failure scenario">
-      <div className="guided-disaster-copy">
-        <span className="disaster-alert-tag">INCIDENT REPORT · HIGH RISK</span>
-        <h2>$3,750 lost before anyone can intervene.</h2>
-        <p>
-          An AI agent attempts to issue a single $1,250 refund. A network retry loop fires the API call three times. Without a transactional ledger or idempotency enforcement, the company loses $3,750.
-        </p>
-      </div>
-      
-      <div className="guided-disaster-terminal" aria-label="Simulated raw API logs">
-        <div className="terminal-header">
-          <span className="terminal-dot red" />
-          <span className="terminal-dot yellow" />
-          <span className="terminal-dot green" />
-          <span className="terminal-title">API LOGS (DOWNSTREAM PAYMENT SYSTEM)</span>
-        </div>
-        <div className="terminal-body">
-          <div className="terminal-line">
-            <span className="time">15:04:11.002</span>
-            <span className="method post">POST</span>
-            <span className="path">/payments/refund</span>
-            <span className="amount">$1,250</span>
-            <span className="badge warning">No key</span>
-          </div>
-          <div className="terminal-subline">
-            <span>└── Status: 200 OK · Action Executed</span>
-          </div>
-          
-          <div className="terminal-line error">
-            <span className="time">15:04:12.140</span>
-            <span className="method post">POST</span>
-            <span className="path">/payments/refund</span>
-            <span className="amount">$1,250</span>
-            <span className="badge warning">No key</span>
-          </div>
-          <div className="terminal-subline error-msg">
-            <span>├── Status: 200 OK · [DUPLICATE CHARGE]</span>
-          </div>
-          
-          <div className="terminal-line error">
-            <span className="time">15:04:13.250</span>
-            <span className="method post">POST</span>
-            <span className="path">/payments/refund</span>
-            <span className="amount">$1,250</span>
-            <span className="badge warning">No key</span>
-          </div>
-          <div className="terminal-subline error-msg">
-            <span>└── Status: 200 OK · [TRIPLE CHARGE]</span>
-          </div>
-        </div>
+    <div className="guided-disaster-redesign" aria-label="Cold open disaster scenario">
+      {/* Visual Space Branding Background */}
+      <div className="space-branding-bg" aria-hidden="true">
+        <Image
+          src="/tether-assets/minimoon.png"
+          alt=""
+          width={120}
+          height={120}
+          className="brand-moon-decor"
+        />
+        <Image
+          src="/tether-assets/minisatellite.png"
+          alt=""
+          width={90}
+          height={90}
+          className="brand-satellite-decor"
+        />
       </div>
 
-      <div className="guided-disaster-total">
-        <span>TOTAL REVENUE LEAK</span>
-        <strong>$3,750</strong>
-        <ul className="disaster-failure-list">
-          <li className="fail">
-            <span>✗</span> Idempotency key omitted
-          </li>
-          <li className="fail">
-            <span>✗</span> No policy role gates
-          </li>
-          <li className="fail">
-            <span>✗</span> No DSQL ledger write
-          </li>
-          <li className="fail">
-            <span>✗</span> No rollback capability
-          </li>
-        </ul>
+      <div className="guided-disaster-grid">
+        {/* Left Column: Narrative with Astronaut */}
+        <div className="disaster-col-narrative">
+          <div className="narrative-content">
+            <span className="disaster-alert-tag">INCIDENT REPORT · HIGH RISK</span>
+            <h2>
+              <span>1 retry bug.</span>
+              <span>3 refunds sent.</span>
+              <strong className="text-leak">${leakAmount.toLocaleString()} lost.</strong>
+            </h2>
+            <p>
+              An AI agent attempts to issue a single $1,250 refund. A network retry loop fires the API call three times. Without Tether&apos;s governed write path, the transaction is executed repeatedly.
+            </p>
+            <div className="disaster-prevent-footer">
+              <span className="bullet">→</span>
+              <span>This is the disaster Tether prevents.</span>
+            </div>
+          </div>
+          
+          {/* Astronaut Illustration Card */}
+          <div className="disaster-astro-card">
+            <Image
+              src="/tether-assets/AstronautOnMiniMoonNoEffects.png"
+              alt="Astronaut on Moon"
+              width={72}
+              height={72}
+              className="astro-img"
+              priority
+            />
+            <div className="astro-card-caption">
+              <span>UNGOVERNED AGENT WRITING DIRECTLY TO PAYMENTS</span>
+              <small>System identity: UNMONITORED</small>
+            </div>
+          </div>
+        </div>
+
+        {/* Center Column: API Terminal & Topology */}
+        <div className="disaster-col-center">
+          {/* Terminal */}
+          <div className="disaster-terminal-card">
+            <div className="terminal-header">
+              <span className="terminal-dot red" />
+              <span className="terminal-dot yellow" />
+              <span className="terminal-dot green" />
+              <span className="terminal-title">API LOGS · DOWNSTREAM SYSTEM</span>
+            </div>
+            <div className="terminal-body">
+              {visibleLogCount >= 1 && (
+                <div className="terminal-row">
+                  <div className="terminal-row-left">
+                    <span className="time">15:04:11.002</span>
+                    <span className="method">POST</span>
+                    <span className="path">/payments/refund</span>
+                    <span className="amount">$1,250</span>
+                    <span className="status-code">200 OK</span>
+                  </div>
+                  <span className="tag-no-gate">NO GATE</span>
+                </div>
+              )}
+              {visibleLogCount >= 2 && (
+                <div className="terminal-row warning-line">
+                  <div className="terminal-row-left">
+                    <span className="time">15:04:12.140</span>
+                    <span className="method">POST</span>
+                    <span className="path">/payments/refund</span>
+                    <span className="amount">$1,250</span>
+                    <span className="status-code">200 OK</span>
+                    <span className="badge-warning">[DUPLICATE]</span>
+                  </div>
+                  <span className="tag-no-gate">NO IDEMPOTENCY</span>
+                </div>
+              )}
+              {visibleLogCount >= 3 && (
+                <div className="terminal-row warning-line">
+                  <div className="terminal-row-left">
+                    <span className="time">15:04:13.250</span>
+                    <span className="method">POST</span>
+                    <span className="path">/payments/refund</span>
+                    <span className="amount">$1,250</span>
+                    <span className="status-code">200 OK</span>
+                    <span className="badge-warning">[TRIPLE]</span>
+                  </div>
+                  <span className="tag-no-gate">NO ROLLBACK</span>
+                </div>
+              )}
+            </div>
+          </div>
+
+          {/* Topology Diagram */}
+          <div className="disaster-topology-card">
+            <div className="topology-title">ARCHITECTURAL BYPASS</div>
+            <div className="topology-container">
+              <div className="topology-row">
+                <div className="topology-node" data-status="active">
+                  <Network size={12} />
+                  <span>AI Agent</span>
+                </div>
+                <div className="topology-arrow" data-unsafe="true" />
+                <div className="topology-node" data-status="unsafe">
+                  <AlertTriangle size={12} />
+                  <span>Raw Write</span>
+                </div>
+                <div className="topology-arrow" data-unsafe="true" />
+                <div className="topology-node" data-status="unsafe">
+                  <CircleDollarSign size={12} />
+                  <span>Payments</span>
+                </div>
+              </div>
+              <div className="topology-arrow-down" />
+              <div className="topology-row" style={{ justifyContent: "center" }}>
+                <div className="topology-node" data-status="bypassed">
+                  <ShieldCheck size={12} />
+                  <span>Tether Plane (OFFLINE)</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Right Column: Failure Checklist & Action Controls */}
+        <div className="disaster-col-right">
+          <div className="disaster-summary-card">
+            <div className="summary-title">
+              <span>TOTAL REVENUE LEAK</span>
+              <strong>${leakAmount.toLocaleString()}</strong>
+            </div>
+
+            <ul className="disaster-checklist">
+              <li data-active={visibleLogCount >= 2}>
+                <span className="marker">✗</span>
+                <span>No idempotency key</span>
+              </li>
+              <li data-active={visibleLogCount >= 1}>
+                <span className="marker">✗</span>
+                <span>No policy role gate</span>
+              </li>
+              <li data-active={visibleLogCount >= 1}>
+                <span className="marker">✗</span>
+                <span>No human approval</span>
+              </li>
+              <li data-active={visibleLogCount >= 3}>
+                <span className="marker">✗</span>
+                <span>No DSQL ledger write</span>
+              </li>
+              <li data-active={visibleLogCount >= 3}>
+                <span className="marker">✗</span>
+                <span>No rollback capability</span>
+              </li>
+            </ul>
+          </div>
+
+          {/* Integrated Actions Card */}
+          <div className="disaster-actions-card">
+            <div className="actions-info">
+              <strong>COCKPIT BYPASSED</strong>
+              <small>Enable governed write path to block duplicates.</small>
+            </div>
+            <div className="actions-buttons">
+              <button
+                onClick={onRestart}
+                disabled={running}
+                className="btn-restart"
+                type="button"
+              >
+                <RotateCcw size={12} />
+                <span>Restart</span>
+              </button>
+              <button
+                onClick={onNext}
+                disabled={!locked || running}
+                className="btn-activate"
+                type="button"
+              >
+                <span>Activate Tether</span>
+                <ArrowRight size={12} />
+              </button>
+            </div>
+          </div>
+        </div>
       </div>
-    </section>
+    </div>
   );
 }
 
@@ -1798,6 +1967,7 @@ export function TetherConsole() {
   const [retryProof, setRetryProof] = useState<RetryProof | null>(null);
   const [mutationError, setMutationError] = useState<MutationError | null>(null);
   const [guidedStepIndex, setGuidedStepIndex] = useState(0);
+  const [restartKey, setRestartKey] = useState(0);
   const guidedExecutedStep = useRef(-1);
   const guidedActionId = useRef<string | null>(null);
   const [guidedRunning, setGuidedRunning] = useState(false);
@@ -1957,6 +2127,7 @@ export function TetherConsole() {
       setMutationError(null);
       guidedExecutedStep.current = -1;
       setGuidedStepIndex(0);
+      setRestartKey((k) => k + 1);
       void invalidateProof();
     } catch (error) {
       setMutationError({
@@ -2168,7 +2339,14 @@ export function TetherConsole() {
 
   function renderActiveView() {
     if (guidedMode && guidedStepIndex === 0) {
-      return <GuidedDisasterPanel />;
+      return (
+        <GuidedColdOpen
+          key={restartKey}
+          onNext={nextGuidedStep}
+          onRestart={restartGuidedDemo}
+          running={guidedRunning}
+        />
+      );
     }
 
     if (activeView === "ledger") {
@@ -2265,6 +2443,16 @@ export function TetherConsole() {
           actingRole={actingRole}
           onRoleChange={setActingRole}
         />
+        {guidedMode && guidedStepIndex === 1 && (
+          <motion.div
+            initial={{ opacity: 0, y: -10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.2, duration: 0.4 }}
+            className="tether-intercept-alert"
+          >
+            <span>🛡️ Governed write path online · Tether intercept enabled</span>
+          </motion.div>
+        )}
         {mutationError ? (
           <div className="toast" role="status">
             <strong>{mutationError.source} failed.</strong>
@@ -2273,7 +2461,7 @@ export function TetherConsole() {
         ) : null}
         {renderActiveView()}
       </section>
-      {guidedMode ? (
+      {guidedMode && guidedStepIndex > 0 ? (
         <GuidedDemoOverlay
           stepIndex={guidedStepIndex}
           running={guidedRunning}
