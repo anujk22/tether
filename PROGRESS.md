@@ -1193,6 +1193,7 @@ Next action:
   - `public/tether-assets/minimoon.png`
   - `public/tether-assets/minisatellite.png`
 - Removed the older CSS-only planet/satellite decoration from the hero.
+- Aligned the hero orbit paths and fifth astronaut placement with the final bitmap station composition.
 - Restored the required sponsor-first `Built with` row:
   - `Vercel`
   - `AWS Aurora DSQL`

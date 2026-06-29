@@ -405,8 +405,9 @@ input:focus-visible {
   pointer-events: none;
   position: absolute;
   inset: -24px 0 0;
-  stroke: rgb(255 255 255 / 0.58);
-  stroke-dasharray: 2 8;
+  opacity: 0.9;
+  stroke: rgb(255 255 255 / 0.5);
+  stroke-dasharray: 2 7;
   stroke-linecap: round;
   stroke-width: 1;
   width: 100%;
@@ -1250,8 +1251,8 @@ input:focus-visible {
 }
 
 .hero-astro-b {
-  right: 8%;
-  top: 208px;
+  right: 7%;
+  top: 188px;
   width: 44px;
 }
 
@@ -1265,6 +1266,12 @@ input:focus-visible {
   left: 8%;
   top: 346px;
   width: 43px;
+}
+
+.hero-astro-e {
+  right: 12%;
+  top: 372px;
+  width: 45px;
 }
 
 .hero-astro-left {
@@ -1287,16 +1294,11 @@ input:focus-visible {
   top: 52px;
 }
 
-.hero-moon-b {
-  right: 18%;
-  top: 522px;
-}
-
 .hero-mini-satellite {
-  width: 58px;
-  right: 5%;
-  top: 270px;
-  transform: rotate(16deg);
+  width: 54px;
+  right: 0%;
+  top: 250px;
+  transform: rotate(18deg);
 }
 
 .feature-glyph {

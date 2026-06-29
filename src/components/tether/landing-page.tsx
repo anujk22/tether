@@ -146,12 +146,12 @@ function StationScene() {
     <div className="station-scene" aria-label="Tether orbital control station">
       <div className="star-field" />
       <svg className="orbit-map" viewBox="0 0 820 520" aria-hidden="true">
-        <path d="M84 158 C178 62 338 112 460 84 C600 48 780 84 724 188 C690 250 574 250 482 226" />
-        <path d="M92 184 C44 210 52 272 125 270 C184 268 142 198 204 202" />
-        <path d="M22 342 C150 244 288 306 412 312 C548 318 646 286 796 330" />
-        <path d="M224 214 C252 264 184 302 188 356 C192 412 128 426 76 404" />
-        <path d="M510 238 C578 236 600 294 650 252 C682 226 720 232 764 210" />
-        <path d="M544 330 C610 330 654 350 704 396" />
+        <path d="M92 150 C184 42 386 54 586 92 C742 122 782 210 658 244 C558 272 432 230 302 206 C190 186 118 214 98 292" />
+        <path d="M64 340 C178 250 294 292 410 306 C548 322 660 294 796 330" />
+        <path d="M118 418 C222 394 230 314 214 248 C204 206 246 176 284 204" />
+        <path d="M34 388 C136 298 246 344 360 382 C470 420 584 424 700 386" />
+        <path d="M584 176 C664 150 736 166 778 222" />
+        <path d="M512 318 C598 318 618 386 690 376 C738 370 760 346 790 330" />
       </svg>
       <Astro
         alt=""
@@ -190,6 +190,13 @@ function StationScene() {
       />
       <Astro
         alt=""
+        className="hero-astro hero-astro-e hero-astro-left"
+        height={760}
+        src={assets.right}
+        width={538}
+      />
+      <Astro
+        alt=""
         className="hero-moon hero-moon-a"
         height={279}
         src={assets.miniMoon}
@@ -201,13 +208,6 @@ function StationScene() {
         height={477}
         src={assets.miniSatellite}
         width={522}
-      />
-      <Astro
-        alt=""
-        className="hero-moon hero-moon-b"
-        height={279}
-        src={assets.miniMoon}
-        width={280}
       />
     </div>
   );
