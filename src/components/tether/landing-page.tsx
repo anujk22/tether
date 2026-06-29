@@ -66,6 +66,7 @@ const assets = {
   tiny: "/tether-assets/AstronautForwardMiniIconTiny.png",
   moon: "/tether-assets/AstronautOnMiniMoonNoEffects.png",
   single: "/tether-assets/AstronautSingleFacingForward.png",
+  right: "/tether-assets/miniastronaut-facing-right.png",
 };
 
 const navItems = [
@@ -234,9 +235,6 @@ function StationScene() {
       <svg className="orbit orbit-two" viewBox="0 0 620 300">
         <ellipse cx="310" cy="150" rx="235" ry="112" />
       </svg>
-      <svg className="orbit orbit-three" viewBox="0 0 620 300">
-        <ellipse cx="310" cy="150" rx="185" ry="56" />
-      </svg>
       <Astro
         alt=""
         className="hero-station"
@@ -246,32 +244,25 @@ function StationScene() {
       />
       <Astro
         alt=""
-        className="hero-astro hero-astro-a"
-        height={587}
-        src={assets.single}
-        width={507}
+        className="hero-astro hero-astro-a hero-astro-right"
+        height={760}
+        src={assets.right}
+        width={538}
       />
       <Astro
         alt=""
-        className="hero-astro hero-astro-b"
-        height={587}
-        src={assets.single}
-        width={507}
+        className="hero-astro hero-astro-b hero-astro-left"
+        height={760}
+        src={assets.right}
+        width={538}
       />
       <Astro
         alt=""
-        className="hero-astro hero-astro-c"
+        className="hero-astro hero-astro-c hero-astro-forward"
         height={587}
         src={assets.single}
         width={507}
       />
-      <div className="system-status" aria-hidden="true">
-        <span>System status</span>
-        <p>
-          <i />
-          All systems nominal
-        </p>
-      </div>
       <div className="planet planet-a" aria-hidden="true" />
       <div className="planet planet-b" aria-hidden="true" />
     </div>
