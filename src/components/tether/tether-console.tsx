@@ -10,6 +10,7 @@ import {
   AlertTriangle,
   ArrowRight,
   BookOpen,
+  Bot,
   Check,
   CheckCircle2,
   CircleDollarSign,
@@ -1648,6 +1649,19 @@ function InfrastructureView({
   );
 }
 
+function TetherLogoIcon({ size = 12 }: { size?: number }) {
+  return (
+    <svg
+      style={{ width: size, height: (size * 80) / 100 }}
+      viewBox="0 0 100 80"
+      aria-hidden="true"
+    >
+      <path d="M 48 80 L 48 16 C 48 6, 42 0, 32 0 L 10 0 C 2 0, 2 18, 10 18 L 26 18 C 36 18, 40 22, 40 32 L 40 70 L 48 80 Z" fill="currentColor" />
+      <path d="M 52 80 L 52 16 C 52 6, 58 0, 68 0 L 90 0 C 98 0, 98 18, 90 18 L 74 18 C 64 18, 60 22, 60 32 L 60 70 L 52 80 Z" fill="currentColor" />
+    </svg>
+  );
+}
+
 function GuidedColdOpen({
   onNext,
   onRestart,
@@ -1731,10 +1745,10 @@ function GuidedColdOpen({
           {/* Astronaut Illustration Card */}
           <div className="disaster-astro-card">
             <Image
-              src="/tether-assets/AstronautOnMiniMoonNoEffects.png"
-              alt="Astronaut on Moon"
-              width={72}
-              height={72}
+              src="/tether-assets/AstronautForwardMiniIconTiny.png"
+              alt="Astronaut"
+              width={38}
+              height={44}
               className="astro-img"
               priority
             />
@@ -1753,7 +1767,7 @@ function GuidedColdOpen({
               <span className="terminal-dot red" />
               <span className="terminal-dot yellow" />
               <span className="terminal-dot green" />
-              <span className="terminal-title">API LOGS · DOWNSTREAM SYSTEM</span>
+              <span className="terminal-title">API LOGS · DOWNSTREAM PAYMENT SYSTEM</span>
             </div>
             <div className="terminal-body">
               {visibleLogCount >= 1 && (
@@ -1769,27 +1783,25 @@ function GuidedColdOpen({
                 </div>
               )}
               {visibleLogCount >= 2 && (
-                <div className="terminal-row warning-line">
+                <div className="terminal-row">
                   <div className="terminal-row-left">
                     <span className="time">15:04:12.140</span>
                     <span className="method">POST</span>
                     <span className="path">/payments/refund</span>
                     <span className="amount">$1,250</span>
                     <span className="status-code">200 OK</span>
-                    <span className="badge-warning">[DUPLICATE]</span>
                   </div>
                   <span className="tag-no-gate">NO IDEMPOTENCY</span>
                 </div>
               )}
               {visibleLogCount >= 3 && (
-                <div className="terminal-row warning-line">
+                <div className="terminal-row">
                   <div className="terminal-row-left">
                     <span className="time">15:04:13.250</span>
                     <span className="method">POST</span>
                     <span className="path">/payments/refund</span>
                     <span className="amount">$1,250</span>
                     <span className="status-code">200 OK</span>
-                    <span className="badge-warning">[TRIPLE]</span>
                   </div>
                   <span className="tag-no-gate">NO ROLLBACK</span>
                 </div>
@@ -1799,29 +1811,81 @@ function GuidedColdOpen({
 
           {/* Topology Diagram */}
           <div className="disaster-topology-card">
-            <div className="topology-title">ARCHITECTURAL BYPASS</div>
+            <div className="topology-title">SYSTEM TOPOLOGY · UNGOVERNED PATH</div>
             <div className="topology-container">
               <div className="topology-row">
-                <div className="topology-node" data-status="active">
-                  <Network size={12} />
-                  <span>AI Agent</span>
+                <div className="topology-node-new" data-status="active">
+                  <div className="node-icon-wrapper">
+                    <Bot size={14} className="node-icon" />
+                  </div>
+                  <div className="node-text">
+                    <div className="node-title">AI AGENT</div>
+                    <div className="node-subtitle">Support Agent</div>
+                  </div>
                 </div>
-                <div className="topology-arrow" data-unsafe="true" />
-                <div className="topology-node" data-status="unsafe">
-                  <AlertTriangle size={12} />
-                  <span>Raw Write</span>
+                <div className="topology-arrow-new" data-style="solid" />
+                <div className="topology-node-new" data-status="unsafe">
+                  <div className="node-icon-wrapper">
+                    <AlertTriangle size={14} className="node-icon" />
+                  </div>
+                  <div className="node-text">
+                    <div className="node-title">RAW API WRITE</div>
+                    <div className="node-subtitle">Direct Endpoint</div>
+                  </div>
                 </div>
-                <div className="topology-arrow" data-unsafe="true" />
-                <div className="topology-node" data-status="unsafe">
-                  <CircleDollarSign size={12} />
-                  <span>Payments</span>
+                <div className="topology-arrow-new" data-style="dashed" />
+                <div className="topology-node-new" data-status="unsafe">
+                  <div className="node-icon-wrapper">
+                    <CircleDollarSign size={14} className="node-icon" />
+                  </div>
+                  <div className="node-text">
+                    <div className="node-title">PAYMENT SYSTEM</div>
+                    <div className="node-subtitle">Downstream</div>
+                  </div>
                 </div>
               </div>
-              <div className="topology-arrow-down" />
+
+              {/* Custom dotted tree connector */}
+              <div className="topology-tree-connector">
+                <div className="tree-line tree-line-left-vertical" />
+                <div className="tree-line tree-line-right-vertical" />
+                <div className="tree-line tree-line-center-vertical-top" />
+                <div className="tree-line tree-line-horizontal" />
+                <div className="tree-bypassed-badge">
+                  <span className="bypassed-x">×</span>
+                </div>
+                <div className="tree-line tree-line-center-vertical-bottom" />
+              </div>
+
               <div className="topology-row" style={{ justifyContent: "center" }}>
-                <div className="topology-node" data-status="bypassed">
-                  <ShieldCheck size={12} />
-                  <span>Tether Plane (OFFLINE)</span>
+                <div className="topology-node-new" data-status="bypassed">
+                  <div className="node-icon-wrapper">
+                    <TetherLogoIcon size={14} />
+                  </div>
+                  <div className="node-text">
+                    <div className="node-title">TETHER CONTROL PLANE</div>
+                    <div className="node-subtitle">BYPASSED</div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Bottom telemetry warning indicators */}
+              <div className="topology-status-row">
+                <div className="status-item">
+                  <AlertTriangle size={10} />
+                  <span>No gate</span>
+                </div>
+                <div className="status-item">
+                  <AlertTriangle size={10} />
+                  <span>No ledger</span>
+                </div>
+                <div className="status-item">
+                  <AlertTriangle size={10} />
+                  <span>No approval</span>
+                </div>
+                <div className="status-item">
+                  <AlertTriangle size={10} />
+                  <span>No rollback</span>
                 </div>
               </div>
             </div>
@@ -1955,6 +2019,34 @@ function GuidedDemoOverlay({
     </aside>
   );
 }
+
+const consoleFeatures = [
+  {
+    title: "Gate",
+    body: "Control what agents can access and do.",
+    visual: "/tether-assets/AstroGated.png",
+  },
+  {
+    title: "Approve",
+    body: "Human-in-the-loop when it matters.",
+    visual: "/tether-assets/AstroMiniCheck.png",
+  },
+  {
+    title: "Record",
+    body: "Capture every action with immutable logs.",
+    visual: "/tether-assets/AstrorecordImage.png",
+  },
+  {
+    title: "Rollback",
+    body: "Revert actions. Restore state. Reduce risk.",
+    visual: "/tether-assets/AstroMiniRollback.png",
+  },
+  {
+    title: "Govern",
+    body: "Policies, permissions, and guardrails at scale.",
+    visual: "/tether-assets/AstronautOnMiniMoonNoEffects.png",
+  },
+];
 
 export function TetherConsole() {
   const queryClient = useQueryClient();
@@ -2338,14 +2430,34 @@ export function TetherConsole() {
   ]);
 
   function renderActiveView() {
-    if (guidedMode && guidedStepIndex === 0) {
+    if (guidedMode && guidedStepIndex === 0 && activeView === "cockpit") {
       return (
-        <GuidedColdOpen
-          key={restartKey}
-          onNext={nextGuidedStep}
-          onRestart={restartGuidedDemo}
-          running={guidedRunning}
-        />
+        <div style={{ display: "flex", flexDirection: "column", gap: "32px" }}>
+          <GuidedColdOpen
+            key={restartKey}
+            onNext={nextGuidedStep}
+            onRestart={restartGuidedDemo}
+            running={guidedRunning}
+          />
+          <section className="feature-band" style={{ width: "100%", maxWidth: "100%", margin: "0" }} aria-label="Tether capabilities">
+            {consoleFeatures.map((feature) => (
+              <article className="feature-card" key={feature.title}>
+                <h2>{feature.title}</h2>
+                <div className="feature-glyph" aria-hidden="true" style={{ minHeight: "84px", display: "flex", alignItems: "center" }}>
+                  <Image
+                    className={`feature-art feature-art-${feature.title.toLowerCase()}`}
+                    src={feature.visual}
+                    alt={feature.title}
+                    width={156}
+                    height={92}
+                    style={{ objectFit: "contain", maxHeight: "84px", width: "auto" }}
+                  />
+                </div>
+                <p>{feature.body}</p>
+              </article>
+            ))}
+          </section>
+        </div>
       );
     }
 
@@ -2381,36 +2493,57 @@ export function TetherConsole() {
     }
 
     return (
-      <div className="console-grid">
-        <AgentIntake
-          actions={actions}
-          selectedId={selectedAction?.id ?? null}
-          onSelect={setSelectedId}
-          onPropose={(draft) => propose.mutate(draft)}
-          onReset={() => reset.mutate()}
-          proposing={propose.isPending}
-          resetting={reset.isPending}
-        />
-        <PolicyGate
-          action={selectedAction}
-          entity={data?.entity ?? null}
-          versions={data?.versions ?? []}
-        />
-        <DecisionPanel
-          action={selectedAction}
-          actingRole={actingRole}
-          approving={approve.isPending}
-          onApprove={() =>
-            selectedAction &&
-            approve.mutate({ actionId: selectedAction.id, role: actingRole })
-          }
-          rollingBack={rollback.isPending}
-          onRollback={() => selectedAction && rollback.mutate(selectedAction.id)}
-          retrying={retry.isPending}
-          onRetry={() => retry.mutate()}
-          retryProof={retryProof}
-        />
-        <FlightRecorder traces={data?.traces ?? []} />
+      <div style={{ display: "flex", flexDirection: "column", gap: "32px" }}>
+        <div className="console-grid">
+          <AgentIntake
+            actions={actions}
+            selectedId={selectedAction?.id ?? null}
+            onSelect={setSelectedId}
+            onPropose={(draft) => propose.mutate(draft)}
+            onReset={() => reset.mutate()}
+            proposing={propose.isPending}
+            resetting={reset.isPending}
+          />
+          <PolicyGate
+            action={selectedAction}
+            entity={data?.entity ?? null}
+            versions={data?.versions ?? []}
+          />
+          <DecisionPanel
+            action={selectedAction}
+            actingRole={actingRole}
+            approving={approve.isPending}
+            onApprove={() =>
+              selectedAction &&
+              approve.mutate({ actionId: selectedAction.id, role: actingRole })
+            }
+            rollingBack={rollback.isPending}
+            onRollback={() => selectedAction && rollback.mutate(selectedAction.id)}
+            retrying={retry.isPending}
+            onRetry={() => retry.mutate()}
+            retryProof={retryProof}
+          />
+          <FlightRecorder traces={data?.traces ?? []} />
+        </div>
+
+        <section className="feature-band" style={{ width: "100%", maxWidth: "100%", margin: "0" }} aria-label="Tether capabilities">
+          {consoleFeatures.map((feature) => (
+            <article className="feature-card" key={feature.title}>
+              <h2>{feature.title}</h2>
+              <div className="feature-glyph" aria-hidden="true" style={{ minHeight: "84px", display: "flex", alignItems: "center" }}>
+                <Image
+                  className={`feature-art feature-art-${feature.title.toLowerCase()}`}
+                  src={feature.visual}
+                  alt={feature.title}
+                  width={156}
+                  height={92}
+                  style={{ objectFit: "contain", maxHeight: "84px", width: "auto" }}
+                />
+              </div>
+              <p>{feature.body}</p>
+            </article>
+          ))}
+        </section>
       </div>
     );
   }

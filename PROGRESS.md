@@ -1270,6 +1270,15 @@ Next action:
 - Keyed `<GuidedColdOpen />` to the parent `restartKey` state to automatically re-mount the component and reset animations when clicking "Restart".
 - Added a notification banner on Step 1: `🛡️ Governed write path online · Tether intercept enabled`.
 - Replaced the old `.guided-disaster` classes in `src/app/globals.css` with clean, modern `.guided-disaster-redesign` styling parameters.
+- Resized and centered the console sidebar navigation elements to increase their prominence and aesthetic alignment:
+  - Centered the brand header by converting `.sidebar-brand` to a vertically stacked flex-column.
+  - Increased `.tether-logo-icon` size from 25x20 to 38x30 with a glowing drop-shadow.
+  - Centered the brand text `T E T H E R` by setting `font-size: 20px; font-weight: 600; text-indent: 0.32em;`.
+  - Replaced the weak lowercase gray subtitle text with a bold uppercase monospace element: `CONTROL PLANE` (11px, weight 600, spacing 0.14em, color `#ffffff`).
+  - Reordered the console sidebar navigation items so that **Aurora DSQL** now resides directly above **Policies**.
+  - Increased navigation links text font-size to 14.5px.
+  - Increased the Lucide icons size in the navigation map from 16 to 19.
+  - Increased navigation item container padding (to 12px), min-height (to 46px), and horizontal layout gap (to 12px).
 
 ### Verification
 

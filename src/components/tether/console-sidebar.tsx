@@ -36,16 +36,16 @@ export const consoleViews: Array<{
     href: "/console?view=audit",
   },
   {
-    key: "policies",
-    label: "Policies",
-    icon: BookOpen,
-    href: "/console?view=policies",
-  },
-  {
     key: "infrastructure",
     label: "Aurora DSQL",
     icon: Network,
     href: "/console?view=infrastructure",
+  },
+  {
+    key: "policies",
+    label: "Policies",
+    icon: BookOpen,
+    href: "/console?view=policies",
   },
 ];
 
@@ -96,7 +96,7 @@ export function ConsoleSidebar({
           const isActive = activeView === view.key;
           const content = (
             <>
-              <Icon aria-hidden="true" size={16} />
+              <Icon aria-hidden="true" size={19} />
               {view.label}
             </>
           );

@@ -1,8 +1,12 @@
 @import "tailwindcss";
 
 :root {
+  /* Space station positioning variables (tweak these to move up/down/left/right) */
+  --station-scene-x: -40px;
+  --station-scene-y: 80px;
+
   --bg: #000000;
-  --bg-soft: #030303;
+  --bg-soft: #020202;
   --panel: #090909;
   --panel-soft: #0f0f0f;
   --line: #1c1c1c;
@@ -18,7 +22,8 @@
   --radius-lg: 12px;
   --page-gutter: clamp(20px, 4vw, 72px);
   --max-page: 1440px;
-  --page-gradient:
+  --page-gradient: var(--bg-soft);
+  --landing-gradient:
     radial-gradient(ellipse at 52% 19%, rgb(255 255 255 / 0.026), transparent 28rem),
     linear-gradient(
       90deg,
@@ -146,13 +151,14 @@ input:focus-visible {
 }
 
 .tether-logo-icon {
-  width: 25px;
-  height: 20px;
+  width: 38px;
+  height: 30px;
   color: var(--white);
   flex-shrink: 0;
-  filter: drop-shadow(0 0 5px rgb(255 255 255 / 0.22));
+  filter: drop-shadow(0 0 6px rgb(255 255 255 / 0.25));
   display: inline-block;
   vertical-align: middle;
+  margin-bottom: 4px;
 }
 
 .site-header nav {
@@ -1572,9 +1578,7 @@ input:focus-visible {
   display: grid;
   min-height: 100vh;
   align-items: stretch;
-  background:
-    radial-gradient(circle at 28px 28px, rgb(230 234 242 / 0.045) 0 1px, transparent 1.2px) 0 0 / 28px 28px,
-    var(--bg-base);
+  background: var(--page-gradient);
   color: var(--text-primary);
   grid-template-columns: 220px minmax(0, 1fr);
   gap: 16px;
@@ -1596,21 +1600,31 @@ input:focus-visible {
 }
 
 .sidebar-brand {
-  display: grid;
-  gap: 4px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  gap: 6px;
   border-bottom: 1px solid var(--hairline);
-  padding: 4px 4px 14px;
+  padding: 8px 4px 20px;
 }
 
 .sidebar-brand strong {
   color: var(--text-primary);
-  font-size: var(--fz-lg);
+  font-size: 20px;
   font-weight: 600;
+  letter-spacing: 0.32em;
+  text-indent: 0.32em;
 }
 
 .sidebar-brand span {
-  color: var(--text-tertiary);
-  font-size: var(--fz-xs);
+  color: #ffffff;
+  font-size: 11px;
+  font-weight: 600;
+  font-family: var(--font-mono);
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
 }
 
 .console-sidebar nav {
@@ -1620,16 +1634,16 @@ input:focus-visible {
 
 .console-sidebar button {
   display: inline-flex;
-  min-height: 38px;
+  min-height: 46px;
   align-items: center;
-  gap: 9px;
+  gap: 12px;
   border: 1px solid transparent;
   border-radius: var(--radius-md);
   background: transparent;
   color: var(--text-secondary);
   cursor: pointer;
-  font-size: var(--fz-sm);
-  padding: 0 10px;
+  font-size: 14.5px;
+  padding: 0 12px;
   text-align: left;
 }
 
@@ -3139,11 +3153,7 @@ input:focus-visible {
   grid-template-columns: 220px minmax(0, 1fr);
   gap: 0;
   padding: 0;
-  background:
-    radial-gradient(circle at 32px 32px, rgb(230 234 242 / 0.04) 0 1px, transparent 1.2px) 0 0 / 28px 28px,
-    radial-gradient(circle at 72% 0%, rgb(91 106 217 / 0.08), transparent 38rem),
-    radial-gradient(circle at 8% 100%, rgb(67 181 129 / 0.045), transparent 34rem),
-    var(--bg-base);
+  background: var(--page-gradient);
 }
 
 .console-main {
@@ -3175,20 +3185,30 @@ input:focus-visible {
 }
 
 .sidebar-brand {
-  grid-template-columns: auto 1fr;
+  display: flex;
+  flex-direction: column;
   align-items: center;
-  column-gap: 12px;
-  padding: 0 0 20px;
+  justify-content: center;
+  text-align: center;
+  gap: 6px;
+  padding: 8px 0 20px;
 }
 
 .sidebar-brand strong {
-  font-size: var(--fz-md);
+  font-size: 20px;
+  font-weight: 600;
   letter-spacing: 0.32em;
+  text-indent: 0.32em;
   text-transform: uppercase;
 }
 
 .sidebar-brand span:last-child {
-  grid-column: 2;
+  color: #ffffff;
+  font-size: 11px;
+  font-weight: 600;
+  font-family: var(--font-mono);
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
 }
 
 /* console-pixel-mark styling replaced by tether-logo-icon */
@@ -3198,7 +3218,7 @@ input:focus-visible {
 }
 
 .console-sidebar button {
-  min-height: 42px;
+  min-height: 46px;
 }
 .sidebar-art {
   display: grid;
@@ -3787,10 +3807,17 @@ input:focus-visible {
   display: grid;
   grid-template-columns: 220px minmax(0, 1fr);
   min-height: 100svh;
+}
+
+.landing-shell {
   background:
     radial-gradient(circle at 32px 32px, rgb(242 242 242 / 0.035) 0 1px, transparent 1.2px) 0 0 / 30px 30px,
     radial-gradient(circle at 76% 9%, rgb(255 255 255 / 0.04), transparent 36rem),
-    var(--page-gradient);
+    var(--landing-gradient);
+}
+
+.console-shell {
+  background: var(--page-gradient);
 }
 
 .landing-main,
@@ -3826,7 +3853,7 @@ input:focus-visible {
 
 .landing-shell .station-scene {
   min-height: clamp(560px, 42vw, 760px);
-  transform: translateX(clamp(-88px, -4.4vw, -44px));
+  transform: translate(calc(clamp(-88px, -4.4vw, -44px) + var(--station-scene-x, 0px)), var(--station-scene-y, 0px));
 }
 
 .landing-shell .hero-station {
@@ -3876,24 +3903,32 @@ input:focus-visible {
 }
 
 .sidebar-brand {
-  grid-template-columns: auto 1fr;
+  display: flex;
+  flex-direction: column;
   align-items: center;
-  column-gap: 12px;
+  justify-content: center;
+  text-align: center;
+  gap: 6px;
   border-bottom-color: #17191d;
-  padding: 0 0 20px;
+  padding: 8px 0 20px;
 }
 
 .sidebar-brand strong {
   color: #f4f4f4;
-  font-size: var(--fz-md);
-  font-weight: 500;
+  font-size: 20px;
+  font-weight: 600;
   letter-spacing: 0.32em;
+  text-indent: 0.32em;
   text-transform: uppercase;
 }
 
 .sidebar-brand span:last-child {
-  grid-column: 2;
-  color: #6e7580;
+  color: #ffffff;
+  font-size: 11px;
+  font-weight: 600;
+  font-family: var(--font-mono);
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
 }
 
 /* duplicate console-pixel-mark styling replaced by tether-logo-icon */
@@ -3905,16 +3940,16 @@ input:focus-visible {
 
 .console-sidebar .console-nav-item {
   display: inline-flex;
-  min-height: 42px;
+  min-height: 46px;
   align-items: center;
-  gap: 9px;
+  gap: 12px;
   border: 1px solid transparent;
   border-radius: var(--radius-md);
   background: transparent;
   color: #a6abb4;
   cursor: pointer;
-  font-size: var(--fz-sm);
-  padding: 0 10px;
+  font-size: 14.5px;
+  padding: 0 12px;
   text-align: left;
 }
 
@@ -4414,7 +4449,7 @@ input:focus-visible {
 
   .landing-shell .station-scene {
     width: 100%;
-    transform: none;
+    transform: translate(var(--station-scene-x, 0px), var(--station-scene-y, 0px));
   }
 
   .hero-moon {
@@ -4440,10 +4475,7 @@ input:focus-visible {
 
 /* Console visual parity pass */
 .console-shell {
-  background:
-    radial-gradient(circle at 32px 32px, rgb(255 255 255 / 0.035) 0 1px, transparent 1.2px) 0 0 / 30px 30px,
-    radial-gradient(ellipse at 72% 8%, rgb(255 255 255 / 0.036), transparent 34rem),
-    var(--page-gradient);
+  background: var(--page-gradient);
   color: var(--text-primary);
   font-family: var(--font-geist-sans), Arial, sans-serif;
 }
@@ -4915,8 +4947,8 @@ input:focus-visible {
 }
 
 .disaster-astro-card .astro-img {
-  width: 72px;
-  height: 72px;
+  width: 38px;
+  height: 44px;
   object-fit: contain;
   filter: drop-shadow(0 4px 8px rgba(0, 0, 0, 0.3));
 }
@@ -4981,8 +5013,9 @@ input:focus-visible {
 }
 
 .terminal-row-left {
-  display: flex;
-  gap: 10px;
+  display: grid;
+  grid-template-columns: 12ch 4ch 16ch 6ch 6ch auto;
+  gap: 12px;
   align-items: center;
 }
 
@@ -5023,6 +5056,8 @@ input:focus-visible {
   border-radius: 3px;
   font-weight: 600;
   letter-spacing: 0.05em;
+  white-space: nowrap;
+  flex-shrink: 0;
 }
 
 /* Center Lower: Topology Diagram */
@@ -5122,6 +5157,195 @@ input:focus-visible {
   width: 1px;
   height: 16px;
   background: repeating-linear-gradient(180deg, rgba(255, 255, 255, 0.12), rgba(255, 255, 255, 0.12) 3px, transparent 3px, transparent 6px);
+}
+
+/* New Topology Card Layout & Node Styles */
+.topology-node-new {
+  background: var(--bg-elevated);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 6px;
+  padding: 6px 12px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  z-index: 2;
+  transition: all 0.3s ease;
+  min-width: 140px;
+}
+
+.topology-node-new[data-status="active"] {
+  border-color: var(--white);
+}
+
+.topology-node-new[data-status="unsafe"] {
+  border-color: var(--state-rejected);
+  background: color-mix(in srgb, var(--state-rejected) 4%, transparent);
+}
+
+.topology-node-new[data-status="bypassed"] {
+  border: 1px dashed rgba(255, 255, 255, 0.2);
+  background: rgba(255, 255, 255, 0.02);
+}
+
+.node-icon-wrapper {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.node-icon {
+  color: var(--text-primary);
+}
+
+[data-status="unsafe"] .node-icon {
+  color: var(--state-rejected);
+}
+
+[data-status="bypassed"] .node-icon {
+  color: var(--text-tertiary);
+}
+
+.node-text {
+  display: flex;
+  flex-direction: column;
+  line-height: 1.3;
+  text-align: left;
+}
+
+.node-title {
+  font-family: var(--font-mono), monospace;
+  font-size: 9px;
+  font-weight: 700;
+  color: var(--text-primary);
+  letter-spacing: 0.05em;
+}
+
+.node-subtitle {
+  font-family: var(--font-sans), sans-serif;
+  font-size: 8px;
+  color: var(--text-tertiary);
+}
+
+.topology-arrow-new {
+  flex: 1;
+  height: 1px;
+  position: relative;
+  margin: 0 4px;
+}
+
+.topology-arrow-new[data-style="solid"] {
+  background: var(--state-rejected);
+}
+
+.topology-arrow-new[data-style="dashed"] {
+  background: repeating-linear-gradient(90deg, var(--state-rejected), var(--state-rejected) 3px, transparent 3px, transparent 6px);
+}
+
+.topology-arrow-new::after {
+  content: "";
+  position: absolute;
+  right: -2px;
+  top: -2.5px;
+  width: 0;
+  height: 0;
+  border-top: 3px solid transparent;
+  border-bottom: 3px solid transparent;
+  border-left: 5px solid var(--state-rejected);
+}
+
+.topology-tree-connector {
+  position: relative;
+  width: 100%;
+  margin: 2px 0;
+}
+
+.tree-upper-row {
+  display: flex;
+  justify-content: space-between;
+  width: 100%;
+  height: 24px;
+}
+
+.tree-node-spacer {
+  width: 140px;
+  display: flex;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.tree-arrow-spacer {
+  flex: 1;
+}
+
+.tree-line-v {
+  width: 1px;
+  height: 100%;
+  border-left: 1px dashed var(--state-rejected);
+}
+
+.tree-horizontal-line {
+  position: absolute;
+  left: 70px; /* Center of left spacer (140px / 2) */
+  right: 70px; /* Center of right spacer (140px / 2) */
+  top: 24px;
+  height: 1px;
+  border-top: 1px dashed var(--state-rejected);
+}
+
+.tree-bypassed-badge {
+  position: absolute;
+  left: 50%;
+  top: 24px;
+  transform: translate(-50%, -50%);
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background: #000000;
+  border: 1px solid var(--state-rejected);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 10;
+}
+
+.bypassed-x {
+  color: var(--state-rejected);
+  font-size: 11px;
+  font-weight: bold;
+  line-height: 1;
+  margin-top: -1px;
+}
+
+.tree-lower-line {
+  width: 1px;
+  height: 20px;
+  margin: 0 auto;
+  border-left: 1px dashed var(--state-rejected);
+}
+
+.topology-status-row {
+  display: flex;
+  justify-content: space-around;
+  width: 100%;
+  margin-top: 16px;
+  padding-top: 12px;
+  border-top: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.status-item {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  color: var(--state-rejected);
+  font-family: var(--font-sans), sans-serif;
+  font-size: 10px;
+  font-weight: 500;
+}
+
+.status-item svg {
+  flex-shrink: 0;
+  stroke: var(--state-rejected);
 }
 
 /* Right Column: Failure Summary & Integrated Actions */
