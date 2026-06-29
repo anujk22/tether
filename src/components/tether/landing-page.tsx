@@ -19,12 +19,12 @@ const assets = {
 };
 
 const builtWith = [
-  "Next.js",
-  "React",
-  "TypeScript",
-  "Tailwind CSS",
-  "AWS Aurora DSQL",
-];
+  { label: "Vercel", mark: "vercel" },
+  { label: "AWS Aurora DSQL", mark: "aws" },
+  { label: "Next.js", mark: "next" },
+  { label: "React", mark: "react" },
+  { label: "TypeScript", mark: "ts" },
+] as const;
 
 const features = [
   {
@@ -95,6 +95,47 @@ function Astro({
       src={src}
       width={width}
     />
+  );
+}
+
+function BuiltWithLogo({ mark }: { mark: (typeof builtWith)[number]["mark"] }) {
+  if (mark === "vercel") {
+    return <span className="built-logo built-logo-vercel" aria-hidden="true" />;
+  }
+
+  if (mark === "aws") {
+    return (
+      <span className="built-logo built-logo-aws" aria-hidden="true">
+        <span>aws</span>
+      </span>
+    );
+  }
+
+  if (mark === "react") {
+    return (
+      <span className="built-logo built-logo-react" aria-hidden="true">
+        <svg viewBox="0 0 28 28">
+          <ellipse cx="14" cy="14" rx="11" ry="4.4" />
+          <ellipse cx="14" cy="14" rx="11" ry="4.4" transform="rotate(60 14 14)" />
+          <ellipse cx="14" cy="14" rx="11" ry="4.4" transform="rotate(120 14 14)" />
+          <circle cx="14" cy="14" r="2.2" />
+        </svg>
+      </span>
+    );
+  }
+
+  if (mark === "ts") {
+    return (
+      <span className="built-logo built-logo-ts" aria-hidden="true">
+        TS
+      </span>
+    );
+  }
+
+  return (
+    <span className="built-logo built-logo-next" aria-hidden="true">
+      N
+    </span>
   );
 }
 
@@ -279,7 +320,10 @@ export function LandingPage() {
                 <span>Built with</span>
                 <div>
                   {builtWith.map((item) => (
-                    <strong key={item}>{item}</strong>
+                    <strong key={item.label}>
+                      <BuiltWithLogo mark={item.mark} />
+                      {item.label}
+                    </strong>
                   ))}
                 </div>
               </div>

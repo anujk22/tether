@@ -19,15 +19,13 @@
   --page-gutter: clamp(20px, 4vw, 72px);
   --max-page: 1440px;
   --page-gradient:
-    radial-gradient(circle at 88% 11%, rgb(255 255 255 / 0.12), transparent 7.5rem),
-    radial-gradient(ellipse at 76% 24%, rgb(255 255 255 / 0.055), transparent 34rem),
-    radial-gradient(ellipse at 52% 5%, rgb(255 255 255 / 0.038), transparent 42rem),
+    radial-gradient(ellipse at 52% 19%, rgb(255 255 255 / 0.026), transparent 28rem),
     linear-gradient(
-      112deg,
+      90deg,
       #000000 0%,
-      #030303 26%,
-      #101010 52%,
-      #050505 76%,
+      #010202 34%,
+      #050706 54%,
+      #010202 74%,
       #000000 100%
     );
   --bg-base: #000000;
@@ -4271,16 +4269,85 @@ input:focus-visible {
 .built-with-row > div {
   display: flex;
   flex-wrap: nowrap;
-  gap: clamp(13px, 1.4vw, 21px);
+  gap: clamp(12px, 1.15vw, 18px);
   margin-top: 18px;
 }
 
 .built-with-row strong {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
   color: var(--white);
-  font-size: clamp(12px, 1vw, 15px);
+  font-size: clamp(11px, 0.92vw, 14px);
   font-weight: 600;
   line-height: 1;
   white-space: nowrap;
+}
+
+.built-logo {
+  display: inline-grid;
+  width: 20px;
+  height: 20px;
+  flex: 0 0 auto;
+  place-items: center;
+  color: var(--white);
+}
+
+.built-logo-vercel {
+  width: 0;
+  height: 0;
+  border-right: 9px solid transparent;
+  border-bottom: 16px solid var(--white);
+  border-left: 9px solid transparent;
+}
+
+.built-logo-aws {
+  width: 31px;
+  position: relative;
+  align-items: start;
+  font-family: Arial, sans-serif;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: -0.04em;
+  line-height: 1;
+}
+
+.built-logo-aws::after {
+  content: "";
+  width: 20px;
+  height: 6px;
+  border-bottom: 2px solid var(--state-approval);
+  border-radius: 0 0 999px 999px;
+  position: absolute;
+  right: 1px;
+  bottom: 1px;
+  transform: rotate(-7deg);
+}
+
+.built-logo-next,
+.built-logo-ts {
+  border: 1px solid rgb(255 255 255 / 0.78);
+  border-radius: 4px;
+  font-family: var(--font-mono), ui-monospace, monospace;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0;
+}
+
+.built-logo-react svg {
+  width: 22px;
+  height: 22px;
+  overflow: visible;
+}
+
+.built-logo-react ellipse {
+  fill: none;
+  stroke: var(--white);
+  stroke-width: 1.5;
+}
+
+.built-logo-react circle {
+  fill: var(--white);
 }
 
 .landing-shell .hero-section {

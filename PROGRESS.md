@@ -947,3 +947,28 @@ Next action:
   - no horizontal overflow
 - Browser QA at `390x844` verified no horizontal overflow after the hero/sidebar changes.
 - Screenshots were captured under `/tmp/tether-polish-qa-1782707756/`.
+
+## 2026-06-29 - Built-With Logos + Dark Swatch Background
+
+### Changes
+
+- Updated the landing hero `Built with` row to use logo/mark treatments.
+- Reordered the row to foreground hackathon sponsors first:
+  - `Vercel`
+  - `AWS Aurora DSQL`
+  - `Next.js`
+  - `React`
+  - `TypeScript`
+- Removed `Tailwind CSS` from the row.
+- Changed the landing/app background from the brighter radial glow to the darker near-black swatch direction from the attached reference.
+- Kept the earlier truthfulness cleanup in place: no fake customers, fake testimonials, fake `Book a demo`, or fake top nav.
+
+### Verification
+
+- `pnpm exec tsc --noEmit` passed.
+- `pnpm lint` passed with no warnings.
+- Browser QA at `1440x900` and `390x844` verified:
+  - no horizontal overflow
+  - built-with row order is correct
+  - `Tailwind CSS`, fake trust logos, fake testimonials, `Book a demo`, and `Back to site` do not render
+- Screenshots were captured under `/tmp/tether-builtwith-gradient-qa-final-1782736603/`.
