@@ -1685,6 +1685,33 @@ input:focus-visible {
   gap: 8px;
 }
 
+.role-selector {
+  display: inline-flex;
+  min-height: 34px;
+  align-items: center;
+  gap: 8px;
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-md);
+  background: var(--bg-elevated);
+  padding: 0 8px 0 10px;
+}
+
+.role-selector span {
+  color: var(--text-tertiary);
+  font-family: var(--font-mono), ui-monospace, monospace;
+  font-size: var(--fz-xs);
+}
+
+.role-selector select {
+  min-height: 26px;
+  border: 0;
+  background: transparent;
+  color: var(--text-primary);
+  font-family: var(--font-mono), ui-monospace, monospace;
+  font-size: var(--fz-xs);
+  outline: 0;
+}
+
 .header-metrics span {
   display: inline-flex;
   min-height: 34px;
@@ -2350,6 +2377,32 @@ input:focus-visible {
   display: grid;
   gap: 8px;
   margin: 14px 0;
+}
+
+.role-context-card {
+  display: grid;
+  align-items: center;
+  gap: 8px;
+  grid-template-columns: minmax(90px, 0.65fr) minmax(0, 1fr);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-md);
+  background: var(--bg-inset);
+  margin-top: 12px;
+  padding: 11px;
+}
+
+.role-context-card span {
+  color: var(--text-tertiary);
+  font-size: var(--fz-2xs);
+  font-weight: 500;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.role-context-card strong {
+  color: var(--text-primary);
+  font-size: var(--fz-sm);
+  font-weight: 500;
 }
 
 .evidence-row code {

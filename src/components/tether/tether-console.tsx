@@ -142,6 +142,7 @@ type MutationError = {
 };
 
 type ConsoleView = "cockpit" | "ledger" | "audit" | "policies" | "infrastructure";
+type ActingRole = "support_lead" | "finance" | "csm" | "admin";
 
 type ComposerDraft = {
   actionType: "issue_refund" | "refund_reversal";
@@ -170,6 +171,8 @@ const consoleViews: Array<{
   { key: "policies", label: "Policies", icon: BookOpen },
   { key: "infrastructure", label: "Aurora DSQL", icon: Network },
 ];
+
+const actingRoles: ActingRole[] = ["support_lead", "finance", "csm", "admin"];
 
 const lifecycle = [
   "proposed",
@@ -782,6 +785,7 @@ function PolicyGate({
 
 function DecisionPanel({
   action,
+  actingRole,
   onApprove,
   onRollback,
   onRetry,
@@ -791,6 +795,7 @@ function DecisionPanel({
   retryProof,
 }: {
   action: ActionSummary | null;
+  actingRole: ActingRole;
   onApprove: () => void;
   onRollback: () => void;
   onRetry: () => void;
@@ -811,6 +816,17 @@ function DecisionPanel({
           <div className="decision-summary">
             <StatusPill status={action.status} />
             <p>{action.rationale}</p>
+          </div>
+          <div className="role-context-card">
+            <span>Acting as</span>
+            <strong>{actingRole.replaceAll("_", " ")}</strong>
+            <span>Required role</span>
+            <strong>
+              {String(action.gate.required_approver_role ?? "none").replaceAll(
+                "_",
+                " ",
+              )}
+            </strong>
           </div>
           <div className="evidence-list">
             {evidence.map((item) => (
@@ -1224,6 +1240,7 @@ export function TetherConsole() {
   const [retryProof, setRetryProof] = useState<RetryProof | null>(null);
   const [mutationError, setMutationError] = useState<MutationError | null>(null);
   const [activeView, setActiveView] = useState<ConsoleView>("cockpit");
+  const [actingRole, setActingRole] = useState<ActingRole>("finance");
   const dashboard = useQuery({
     queryKey: ["dashboard"],
     queryFn: () => fetchJson<DashboardData>("/v1/dashboard"),
@@ -1282,13 +1299,20 @@ export function TetherConsole() {
     onError: onError("Reset demo"),
   });
   const approve = useMutation({
-    mutationFn: (actionId: string) =>
+    mutationFn: ({
+      actionId,
+      role,
+    }: {
+      actionId: string;
+      role: ActingRole;
+    }) =>
       fetchJson(`/v1/actions/${actionId}/decision`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           decision: "approve",
-          note: "Finance approved from Tether console.",
+          note: `${role.replaceAll("_", " ")} approved from Tether console.`,
+          acting_role: role,
         }),
       }),
     onSuccess: () => {
@@ -1378,8 +1402,12 @@ export function TetherConsole() {
         />
         <DecisionPanel
           action={selectedAction}
+          actingRole={actingRole}
           approving={approve.isPending}
-          onApprove={() => selectedAction && approve.mutate(selectedAction.id)}
+          onApprove={() =>
+            selectedAction &&
+            approve.mutate({ actionId: selectedAction.id, role: actingRole })
+          }
           rollingBack={rollback.isPending}
           onRollback={() => selectedAction && rollback.mutate(selectedAction.id)}
           retrying={retry.isPending}
@@ -1418,6 +1446,21 @@ export function TetherConsole() {
             <span>The control plane for AI agents that act</span>
           </div>
           <div className="header-metrics" aria-label="Current ledger state">
+            <label className="role-selector">
+              <span>Acting as</span>
+              <select
+                value={actingRole}
+                onChange={(event) =>
+                  setActingRole(event.currentTarget.value as ActingRole)
+                }
+              >
+                {actingRoles.map((role) => (
+                  <option key={role} value={role}>
+                    {role.replaceAll("_", " ")}
+                  </option>
+                ))}
+              </select>
+            </label>
             <span>
               v<strong>{data?.entity.version_number ?? "-"}</strong>
             </span>

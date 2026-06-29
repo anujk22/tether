@@ -1,13 +1,15 @@
-import { writeTransaction } from "../db/client";
+import { writeTransaction, type DbClient } from "../db/client";
 import { insertAuditEvent, insertTrace } from "../db/trace";
-import type { ActionStatus } from "../domain/types";
+import type { ActionStatus, UserRole } from "../domain/types";
 import { DEMO_IDS } from "../demo/ids";
 import { executeApprovedAction, type ActionRow, type ExecuteResult } from "./execute";
+import { asJsonRecord } from "./json";
 
 export type DecideActionInput = {
   decision: "approve" | "reject";
   note?: string;
   approver_user_id?: string;
+  acting_role?: UserRole;
 };
 
 export type DecideActionResult = {
@@ -19,6 +21,49 @@ export type DecideActionResult = {
 function defaultApprover(decision: "approve" | "reject"): string {
   if (decision === "approve") return DEMO_IDS.users.finance;
   return DEMO_IDS.users.supportLead;
+}
+
+type UserRoleRow = {
+  role: UserRole;
+};
+
+type GateAuditRow = {
+  payload: unknown;
+};
+
+function roleLabel(role: string): string {
+  return role.replaceAll("_", " ");
+}
+
+async function loadUserRole(
+  client: DbClient,
+  userId: string,
+): Promise<UserRole | null> {
+  const result = await client.query<UserRoleRow>(
+    "SELECT role FROM users WHERE id = $1 LIMIT 1",
+    [userId],
+  );
+
+  return result.rows[0]?.role ?? null;
+}
+
+async function loadRequiredApproverRole(
+  client: DbClient,
+  actionId: string,
+): Promise<UserRole | null> {
+  const result = await client.query<GateAuditRow>(
+    `SELECT payload
+     FROM audit_events
+     WHERE action_id = $1
+       AND event_type = 'gate_decided'
+     ORDER BY created_at DESC
+     LIMIT 1`,
+    [actionId],
+  );
+  const payload = asJsonRecord(result.rows[0]?.payload);
+  const requiredRole = payload.required_approver_role;
+
+  return typeof requiredRole === "string" ? (requiredRole as UserRole) : null;
 }
 
 export async function decideAction(
@@ -60,6 +105,20 @@ export async function decideAction(
     }
 
     const approverUserId = input.approver_user_id ?? defaultApprover(input.decision);
+    const actingRole = input.acting_role ?? (await loadUserRole(client, approverUserId));
+    const requiredRole = await loadRequiredApproverRole(client, action.id);
+
+    if (
+      input.decision === "approve" &&
+      requiredRole &&
+      actingRole !== requiredRole
+    ) {
+      throw new Error(
+        `Action requires ${roleLabel(requiredRole)} approval; acting role is ${
+          actingRole ? roleLabel(actingRole) : "unknown"
+        }.`,
+      );
+    }
 
     await client.query(
       `INSERT INTO approvals
@@ -103,6 +162,8 @@ export async function decideAction(
         decision: input.decision,
         note: input.note ?? null,
         approver_user_id: approverUserId,
+        acting_role: actingRole,
+        required_approver_role: requiredRole,
       },
     });
 

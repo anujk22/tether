@@ -772,3 +772,23 @@ Next action:
 ### Next
 
 - Add scoped acting-role enforcement for approvals.
+
+## 2026-06-29 - Role Context Enforcement P2
+
+### Changes
+
+- Added session-only `Acting as` role selector in `/console` for support lead, finance, CSM, and admin.
+- Sent the selected role with console approval requests.
+- Added backend decision enforcement: approvals compare acting role against the proposal's latest gated required approver role.
+- Added clear rejection text when a role mismatch tries to approve.
+- Audit `decision_recorded` payloads now include acting role and required approver role.
+
+### Verification
+
+- `pnpm exec tsc --noEmit` passed.
+- `pnpm lint` passed with the pre-existing `src/components/tether/product-cockpit.tsx` warning.
+- Live DSQL role check passed: support lead was rejected for the finance-required proposal, finance approval executed, and demo reset returned to canonical start.
+
+### Next
+
+- Run browser QA on `/console` desktop/mobile and address visual or interaction issues.
