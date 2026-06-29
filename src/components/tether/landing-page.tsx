@@ -265,6 +265,13 @@ function StationScene() {
         src={assets.single}
         width={507}
       />
+      <div className="system-status" aria-hidden="true">
+        <span>System status</span>
+        <p>
+          <i />
+          All systems nominal
+        </p>
+      </div>
       <div className="planet planet-a" aria-hidden="true" />
       <div className="planet planet-b" aria-hidden="true" />
     </div>
@@ -555,11 +562,11 @@ export function LandingPage() {
 
       <section className="mission-section">
         <div className="mission-copy">
-          <span>Built on real writes</span>
+          <span>Built for how agents work</span>
           <h2>Mission control for your agent ecosystem.</h2>
           <p>
-            The module to the right is live: it reads real proposals, versions,
-            approval state, retry proof, and operation traces from Aurora DSQL.
+            Tether sits between your agents and the tools, APIs, and data they
+            use, providing policy, visibility, and control across every action.
           </p>
           <a href="#how">
             Current state: {heroStatus}
