@@ -906,3 +906,44 @@ Next action:
 - `/console?view=ledger` opened the Ledger view and marked `Ledger` active in the sidebar.
 - Node fetch verified `/product`, `/docs`, `/pricing`, and `/solutions` return `307` redirects to `/console`.
 - Final screenshots were captured under `/tmp/tether-responsive-qa-final-1782707147/`.
+
+## 2026-06-29 - Truthful Home Nav + Surface Match Polish
+
+### Changes
+
+- Replaced the sidebar `Back to site` control with a real `Home` nav item pointing to `/`.
+- Removed the sidebar copyright/legal line.
+- Landing sidebar now marks `Home` active; console still marks the active console view.
+- Matched the sidebar and console card surfaces to the landing feature-card surface:
+  - same graphite base
+  - same subtle diagonal/vertical light gradients
+  - same border color treatment
+- Updated the hero headline to the requested three-line lockup:
+  - `The control plane`
+  - `for AI Agents`
+  - italic `that act`
+- Changed the hero body paragraph to full white.
+- Removed the fabricated `Trusted by` logo row and replaced it with a truthful `Built with` row:
+  - `Next.js`
+  - `React`
+  - `TypeScript`
+  - `Tailwind CSS`
+  - `AWS Aurora DSQL`
+- Removed the fabricated Vercel/Ramp/Retool testimonial cards and their arrows.
+- Removed leftover fake customer/company strings from rendered component sources.
+- Changed the Aurora DSQL infrastructure line from `Next.js on Vercel` to `Next.js app` because local code does not prove a Vercel deployment target.
+
+### Verification
+
+- `pnpm exec tsc --noEmit` passed.
+- `pnpm lint` passed with no warnings.
+- Browser QA at `1440x900` verified:
+  - `/` sidebar items are `Home`, `Action Cockpit`, `Ledger`, `Audit Trail`, `Policies`, `Aurora DSQL`
+  - `Home` is active on `/`
+  - `/console` marks `Action Cockpit` active
+  - no `Trusted by`, fake company logos, fake testimonial copy, `Back to site`, or `Tether Systems` strings render
+  - sidebar and feature band have identical computed background and border colors
+  - console panel and feature band have matching computed surface treatment
+  - no horizontal overflow
+- Browser QA at `390x844` verified no horizontal overflow after the hero/sidebar changes.
+- Screenshots were captured under `/tmp/tether-polish-qa-1782707756/`.

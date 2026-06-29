@@ -5,13 +5,14 @@ import Link from "next/link";
 import type { LucideIcon } from "lucide-react";
 import {
   Activity,
-  ArrowLeft,
-  ArrowRight,
   BookOpen,
   History,
+  Home,
   ListChecks,
   Network,
 } from "lucide-react";
+
+type SidebarNavKey = "home" | ConsoleView;
 
 export type ConsoleView =
   | "cockpit"
@@ -48,6 +49,16 @@ export const consoleViews: Array<{
   },
 ];
 
+const sidebarViews: Array<{
+  key: SidebarNavKey;
+  label: string;
+  icon: LucideIcon;
+  href: string;
+}> = [
+  { key: "home", label: "Home", icon: Home, href: "/" },
+  ...consoleViews,
+];
+
 function PixelMark() {
   return (
     <span className="console-pixel-mark" aria-hidden="true">
@@ -63,7 +74,7 @@ export function ConsoleSidebar({
   mode,
   onChange,
 }: {
-  activeView?: ConsoleView;
+  activeView?: SidebarNavKey;
   mode?: "tabs" | "links";
   onChange?: (view: ConsoleView) => void;
 }) {
@@ -77,7 +88,7 @@ export function ConsoleSidebar({
         <span>Control plane</span>
       </div>
       <nav>
-        {consoleViews.map((view) => {
+        {sidebarViews.map((view) => {
           const Icon = view.icon;
           const isActive = activeView === view.key;
           const content = (
@@ -87,14 +98,16 @@ export function ConsoleSidebar({
             </>
           );
 
-          if (usesTabs && onChange) {
+          if (usesTabs && onChange && view.key !== "home") {
+            const consoleView = view.key as ConsoleView;
+
             return (
               <button
                 aria-current={isActive ? "page" : undefined}
                 className="console-nav-item"
                 data-active={isActive}
                 key={view.key}
-                onClick={() => onChange(view.key)}
+                onClick={() => onChange(consoleView)}
                 type="button"
               >
                 {content}
@@ -124,12 +137,6 @@ export function ConsoleSidebar({
           width={1448}
         />
       </div>
-      <Link className="back-to-site" href="/">
-        <ArrowLeft aria-hidden="true" size={15} />
-        Back to site
-        <ArrowRight aria-hidden="true" size={15} />
-      </Link>
-      <small>© 2026 Tether Systems, Inc.</small>
     </aside>
   );
 }

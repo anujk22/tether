@@ -1,11 +1,7 @@
 "use client";
 
 import Image from "next/image";
-import {
-  ArrowLeft,
-  ArrowRight,
-  Infinity,
-} from "lucide-react";
+import { ArrowRight } from "lucide-react";
 
 import { ConsoleSidebar } from "@/components/tether/console-sidebar";
 
@@ -22,7 +18,13 @@ const assets = {
   right: "/tether-assets/miniastronaut-facing-right.png",
 };
 
-const logos = ["Vercel", "ramp", "Retool", "Hebbia", "LangChain"];
+const builtWith = [
+  "Next.js",
+  "React",
+  "TypeScript",
+  "Tailwind CSS",
+  "AWS Aurora DSQL",
+];
 
 const features = [
   {
@@ -52,35 +54,10 @@ const features = [
   },
 ];
 
-const testimonials = [
-  {
-    logo: "Vercel",
-    quote:
-      "Tether gives us the visibility and controls we need to ship agentic features with confidence.",
-    name: "Guillermo Rauch",
-    role: "CEO, Vercel",
-  },
-  {
-    logo: "ramp",
-    quote:
-      "We can move faster without losing control. Tether is the guardrail that makes autonomy practical.",
-    name: "Eric Glyman",
-    role: "CEO, Ramp",
-  },
-  {
-    logo: "Retool",
-    quote:
-      "Observability, approvals, and rollbacks in one place. It's the missing layer for production-grade agents.",
-    name: "David Hsu",
-    role: "CEO, Retool",
-  },
-];
-
 const footerLinks = [
   ["How it works", "#how-it-works"],
   ["Architecture", "#architecture"],
   ["Open Console", "/console"],
-  ["Book a demo", "/console"],
 ];
 
 function TetherLogo() {
@@ -118,18 +95,6 @@ function Astro({
       src={src}
       width={width}
     />
-  );
-}
-
-function LogoWord({ name }: { name: string }) {
-  return (
-    <span className={`logo-word logo-${name.toLowerCase()}`}>
-      {name === "Vercel" ? <i /> : null}
-      {name === "Retool" ? <b /> : null}
-      {name === "Hebbia" ? <b /> : null}
-      {name === "LangChain" ? <Infinity size={28} strokeWidth={1.8} /> : null}
-      {name}
-    </span>
   );
 }
 
@@ -286,17 +251,15 @@ function MoonPanel() {
 export function LandingPage() {
   return (
     <main className="landing-shell">
-      <ConsoleSidebar activeView="cockpit" mode="links" />
+      <ConsoleSidebar activeView="home" mode="links" />
       <div className="landing-main">
         <div className="site-shell" id="top">
           <section className="hero-section">
             <div className="hero-copy">
               <h1>
-                The control plane
-                <br />
-                for AI agents
-                <br />
-                <em>that act.</em>
+                <span>The control plane</span>
+                <span>for AI Agents</span>
+                <em>that act</em>
               </h1>
               <p>
                 Tether keeps every agent safe, aligned, and effective. Gate actions.
@@ -312,11 +275,11 @@ export function LandingPage() {
                   View architecture
                 </a>
               </div>
-              <div className="trusted-row">
-                <span>Trusted by engineering & AI teams</span>
+              <div className="built-with-row">
+                <span>Built with</span>
                 <div>
-                  {logos.map((logo) => (
-                    <LogoWord name={logo} key={logo} />
+                  {builtWith.map((item) => (
+                    <strong key={item}>{item}</strong>
                   ))}
                 </div>
               </div>
@@ -354,29 +317,6 @@ export function LandingPage() {
             <ConsoleTeaser />
           </section>
 
-          <section className="testimonial-section" aria-label="Customer quotes">
-            <div className="section-rule">
-              <span>Trusted by forward-thinking teams</span>
-              <ArrowRight size={14} />
-            </div>
-            <button className="carousel-arrow left" aria-label="Previous testimonial">
-              <ArrowLeft size={26} />
-            </button>
-            <div className="testimonial-grid">
-              {testimonials.map((testimonial) => (
-                <article className="quote-card" key={testimonial.logo}>
-                  <LogoWord name={testimonial.logo} />
-                  <p>“{testimonial.quote}”</p>
-                  <span>{testimonial.name}</span>
-                  <small>{testimonial.role}</small>
-                </article>
-              ))}
-            </div>
-            <button className="carousel-arrow right" aria-label="Next testimonial">
-              <ArrowRight size={26} />
-            </button>
-          </section>
-
           <section className="launch-card" id="demo">
             <MoonPanel />
             <div>
@@ -388,11 +328,11 @@ export function LandingPage() {
             </div>
             <div className="launch-actions">
               <a className="button button-light" href="/console">
-                Book a demo
+                Open Console
                 <ArrowRight size={18} />
               </a>
-              <a href="/console">
-                Open console
+              <a href="#architecture">
+                View architecture
                 <ArrowRight size={18} />
               </a>
             </div>
@@ -402,7 +342,6 @@ export function LandingPage() {
             <div className="footer-brand">
               <TetherLogo />
               <p>The control plane for AI agents that act.</p>
-              <small>© 2026 Tether Systems, Inc. All rights reserved.</small>
             </div>
             <div className="footer-column">
               <strong>Demo paths</strong>

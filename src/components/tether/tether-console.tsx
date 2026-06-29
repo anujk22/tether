@@ -1523,7 +1523,7 @@ function InfrastructureView({
         Aurora DSQL · {infrastructure?.region ?? "us-east-1"} ·{" "}
         {infrastructure?.auth ?? "IAM token auth"} ·{" "}
         {infrastructure?.consistency ?? "strong consistency"} ·{" "}
-        {infrastructure?.isolation ?? "snapshot isolation"} · Next.js on Vercel
+        {infrastructure?.isolation ?? "snapshot isolation"} · Next.js app
       </div>
       <div className="infra-grid">
         <article>
