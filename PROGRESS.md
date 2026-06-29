@@ -972,3 +972,22 @@ Next action:
   - built-with row order is correct
   - `Tailwind CSS`, fake trust logos, fake testimonials, `Book a demo`, and `Back to site` do not render
 - Screenshots were captured under `/tmp/tether-builtwith-gradient-qa-final-1782736603/`.
+
+## 2026-06-29 - P0 Serverless DSQL Plumbing
+
+### Changes
+
+- Confirmed the Vercel CLI identity as `anujk22`.
+- Kept the existing Aurora DSQL async-password pattern, but tightened it for Vercel serverless:
+  - default pool size is now `1`
+  - idle connections close after `10s`
+  - pooled connections rotate after `600s`
+  - each new PostgreSQL connection asks `DsqlSigner` for a fresh IAM token
+- Added explicit `nodejs` runtime to `/v1/demo/reset` so the reset route never runs in an edge runtime.
+- Did not change gate, execute, rollback, compensation, retry, or idempotency lifecycle logic.
+
+### Verification
+
+- `pnpm exec tsc --noEmit` passed.
+- `pnpm lint` passed with no warnings.
+- `pnpm db:connect` passed against Aurora DSQL from local env with `dsql:connected`.

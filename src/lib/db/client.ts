@@ -11,11 +11,7 @@ let pool: Pool | undefined;
 
 function createPool(): Pool {
   const env = getDsqlEnv();
-  const signer = new DsqlSigner({
-    hostname: env.host,
-    region: env.region,
-    credentials: fromNodeProviderChain(),
-  });
+  const credentials = fromNodeProviderChain();
 
   return new Pool({
     host: env.host,
@@ -24,10 +20,16 @@ function createPool(): Pool {
     port: env.port,
     ssl: env.ssl,
     max: env.poolMax,
-    idleTimeoutMillis: 30_000,
+    idleTimeoutMillis: 10_000,
     connectionTimeoutMillis: 10_000,
+    maxLifetimeSeconds: 600,
     allowExitOnIdle: true,
-    password: async () => signer.getDbConnectAdminAuthToken(),
+    password: async () =>
+      new DsqlSigner({
+        hostname: env.host,
+        region: env.region,
+        credentials,
+      }).getDbConnectAdminAuthToken(),
   });
 }
 

@@ -36,7 +36,7 @@ function parseBoolean(value: string): boolean {
 }
 
 function parsePoolMax(value: string | undefined): number {
-  if (!value) return 3;
+  if (!value) return 1;
 
   const poolMax = Number(value);
 
