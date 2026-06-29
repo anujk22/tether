@@ -271,6 +271,23 @@ function displayValue(value: unknown): string {
   return formatValue(value).replaceAll("_", " ");
 }
 
+function humanLabel(value: string | null | undefined): string {
+  if (!value) return "None";
+
+  const normalized = value.replaceAll("_", " ").trim().toLowerCase();
+  const overrides: Record<string, string> = {
+    csm: "CSM",
+    high: "HIGH",
+    low: "LOW",
+    medium: "MEDIUM",
+    none: "None",
+  };
+
+  if (overrides[normalized]) return overrides[normalized];
+
+  return normalized.charAt(0).toUpperCase() + normalized.slice(1);
+}
+
 function formatTime(value: string): string {
   const date = new Date(value);
   const h = String(date.getHours()).padStart(2, "0");
@@ -298,7 +315,7 @@ function formatDateTime(value: string): string {
 function actionLabel(action: ActionSummary | undefined): string {
   if (!action) return "No action";
 
-  return `${action.action_type_key.replaceAll("_", " ")} · ${shortId(action.id)}`;
+  return `${humanLabel(action.action_type_key)} · ${shortId(action.id)}`;
 }
 
 function jsonPreview(value: unknown): string {
@@ -440,25 +457,27 @@ function roleFromGate(action: ActionSummary | null | undefined): string | null {
 }
 
 function actionTier(action: ActionSummary | null | undefined): string {
-  return displayValue(
+  const tier =
     action?.proposed_changes.tier ??
-      action?.proposed_changes.customer_tier ??
-      action?.prior_state.tier ??
-      "enterprise",
-  );
+    action?.proposed_changes.customer_tier ??
+    action?.prior_state.tier ??
+    "enterprise";
+
+  return humanLabel(formatValue(tier));
 }
 
 function actionHealth(action: ActionSummary | null | undefined): string {
-  return displayValue(
+  const health =
     action?.proposed_changes.customer_health ??
-      action?.prior_state.customer_health ??
-      "stable",
-  );
+    action?.prior_state.customer_health ??
+    "stable";
+
+  return humanLabel(formatValue(health));
 }
 
 function proposedActionCopy(action: ActionSummary | null | undefined): string {
   if (!action) return "No action selected";
-  const actionName = action.action_type_key.replaceAll("_", " ");
+  const actionName = humanLabel(action.action_type_key);
   const amount = actionAmount(action);
 
   return amount ? `${actionName} ${money(amount)}` : actionName;
@@ -484,7 +503,7 @@ function statusDisplay(action: ActionSummary): { status: string; label: string }
 
   return {
     status: action.status,
-    label: stateLabels[action.status] ?? action.status.replaceAll("_", " "),
+    label: stateLabels[action.status] ?? humanLabel(action.status),
   };
 }
 
@@ -514,7 +533,7 @@ function roleIsAuthorized(action: ActionSummary | null, role: ActingRole): boole
 }
 
 function roleLabel(role: string | null | undefined): string {
-  return role ? role.replaceAll("_", " ") : "none";
+  return humanLabel(role);
 }
 
 function viewFromSearchParam(value: string | null): ConsoleView {
@@ -660,7 +679,7 @@ function MissionStrip({
           >
             {actingRoles.map((role) => (
               <option key={role} value={role}>
-                {role.replaceAll("_", " ")}
+                {roleLabel(role)}
               </option>
             ))}
           </select>
@@ -841,7 +860,7 @@ function AgentIntake({
                     />
                     <span>
                       <strong>{action.agent_name}</strong>
-                      <em>{action.action_type_key.replaceAll("_", " ")}</em>
+                      <em>{humanLabel(action.action_type_key)}</em>
                     </span>
                   </span>
                   <StatusPill status={display.status} label={display.label} />
@@ -906,8 +925,8 @@ function PolicyGate({
         amount > 500
           ? "Refund amount exceeds auto-approval threshold"
           : "Refund amount fits policy threshold",
-        `Customer tier is ${actionTier(action)}`,
-        `Customer health is ${actionHealth(action)}`,
+        `Customer tier: ${actionTier(action)}`,
+        `Customer health: ${actionHealth(action)}`,
         action.reversibility_class === "IRREVERSIBLE_EXTERNAL"
           ? "External financial action requires compensation path"
           : "Internal state can be restored exactly",
@@ -927,12 +946,12 @@ function PolicyGate({
   const routeItems = [
     ["Policy route", String(action?.gate.policy_title ?? "Refund authority")],
     ["Required role", roleLabel(requiredRole)],
-    ["Decision mode", gateDecision(action).replaceAll("_", " ")],
+    ["Decision mode", humanLabel(gateDecision(action))],
     [
       "Reversibility",
       action?.reversibility_class === "IRREVERSIBLE_EXTERNAL"
-        ? "compensation required"
-        : "exact rollback available",
+        ? "Compensation required"
+        : "Exact rollback available",
     ],
   ];
 
@@ -981,7 +1000,7 @@ function PolicyGate({
                   <Icon aria-hidden="true" size={15} />
                 )}
               </motion.span>
-              <span>{stateLabels[status]}</span>
+              <span className="rail-label">{stateLabels[status]}</span>
               {index < lifecycle.length - 1 ? (
                 <span className="rail-connector" aria-hidden="true" />
               ) : null}
@@ -1094,7 +1113,7 @@ function DecisionPanel({
   const isAuthorized = roleIsAuthorized(action, actingRole);
   const canApprove = action?.status === "approval_required" && isAuthorized;
   const canRollback = action?.status === "executed";
-  const enforcementLabel = isAuthorized ? "authorized" : "blocked";
+  const enforcementLabel = isAuthorized ? "Authorized" : "Blocked";
   const approvedSteps = [
     "Record approval in Aurora DSQL",
     "Append immutable trace",
@@ -1116,8 +1135,8 @@ function DecisionPanel({
         [
           "Reversibility",
           action.reversibility_class === "IRREVERSIBLE_EXTERNAL"
-            ? "compensation required"
-            : "exact rollback available",
+            ? "Compensation required"
+            : "Exact rollback available",
         ],
       ]
     : [];
@@ -1149,7 +1168,7 @@ function DecisionPanel({
           <div className="decision-role-grid">
             <div>
               <span>Acting as</span>
-              <strong>{actingRole.replaceAll("_", " ")}</strong>
+              <strong>{roleLabel(actingRole)}</strong>
             </div>
             <div>
               <span>Decision role</span>
@@ -1426,7 +1445,7 @@ function AuditTrailView({
           return (
             <article key={event.id}>
               <time>{formatDateTime(event.created_at)}</time>
-              <strong>{event.event_type.replaceAll("_", " ")}</strong>
+              <strong>{humanLabel(event.event_type)}</strong>
               <span>{actionLabel(action)}</span>
               <pre>{jsonPreview(event.payload)}</pre>
             </article>
@@ -1462,15 +1481,15 @@ function PoliciesView({
                 }
               />
             </div>
-            <h3>{rule.action_type_key.replaceAll("_", " ")}</h3>
+            <h3>{humanLabel(rule.action_type_key)}</h3>
             <dl>
               <div>
                 <dt>Decision</dt>
-                <dd>{rule.decision.replaceAll("_", " ")}</dd>
+                <dd>{humanLabel(rule.decision)}</dd>
               </div>
               <div>
                 <dt>Required role</dt>
-                <dd>{rule.required_approver_role?.replaceAll("_", " ") ?? "none"}</dd>
+                <dd>{roleLabel(rule.required_approver_role)}</dd>
               </div>
             </dl>
             <pre>{jsonPreview(rule.condition)}</pre>
@@ -1672,7 +1691,7 @@ export function TetherConsole() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           decision: "approve",
-          note: `${role.replaceAll("_", " ")} approved from Tether console.`,
+          note: `${roleLabel(role)} approved from Tether console.`,
           acting_role: role,
         }),
       }),

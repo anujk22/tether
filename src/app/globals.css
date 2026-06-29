@@ -29,26 +29,26 @@
       #000000 100%
     );
   --bg-base: #000000;
-  --bg-panel: #08090b;
-  --bg-elevated: #101216;
-  --bg-inset: #030405;
-  --border-subtle: #1b1d22;
-  --border-strong: #2c3037;
-  --hairline: #14161a;
-  --text-primary: #f2f2f2;
-  --text-secondary: #a6abb4;
-  --text-tertiary: #69707b;
-  --text-mono: #c9ced6;
-  --state-proposed: #8b929d;
-  --state-gated: #50ad9a;
+  --bg-panel: #090909;
+  --bg-elevated: #0f0f0f;
+  --bg-inset: #030303;
+  --border-subtle: #1c1c1c;
+  --border-strong: #303030;
+  --hairline: #171717;
+  --text-primary: #f8f8f8;
+  --text-secondary: #d0d0d0;
+  --text-tertiary: #9a9a9a;
+  --text-mono: #d4d4d4;
+  --state-proposed: #8a93a6;
+  --state-gated: #38b2c4;
   --state-approval: #e6a23c;
   --state-approved: #43b581;
-  --state-executed: #8b929d;
+  --state-executed: #5b6ad9;
   --state-rejected: #cc5f77;
   --state-rolledback: #8b62cf;
-  --state-compensated: #50ad9a;
-  --accent: #43b581;
-  --focus-ring: #f2f2f2;
+  --state-compensated: #2fa8a0;
+  --accent: #5b6ad9;
+  --focus-ring: #ffffff;
   --danger: #cc5f77;
   --success: #43b581;
   --fz-2xs: 11px;
@@ -4447,6 +4447,290 @@ input:focus-visible {
 
   .built-with-row > div {
     flex-wrap: wrap;
+  }
+}
+
+/* Console visual parity pass */
+.console-shell {
+  background:
+    radial-gradient(circle at 32px 32px, rgb(255 255 255 / 0.035) 0 1px, transparent 1.2px) 0 0 / 30px 30px,
+    radial-gradient(ellipse at 72% 8%, rgb(255 255 255 / 0.036), transparent 34rem),
+    var(--page-gradient);
+  color: var(--text-primary);
+  font-family: var(--font-geist-sans), Arial, sans-serif;
+}
+
+.mission-copyblock h1 {
+  color: var(--text-primary);
+  font-family: var(--font-geist-sans), Arial, sans-serif;
+  font-size: var(--fz-xl);
+  font-weight: 600;
+  letter-spacing: 0;
+  line-height: 1.18;
+}
+
+.mission-copyblock p,
+.architecture-step,
+.action-card,
+.decision-banner p,
+.decision-outcome-card li,
+.infra-proof p {
+  color: var(--text-secondary);
+}
+
+.console-sidebar,
+.console-panel,
+.mission-kpi {
+  border-color: var(--border-subtle);
+  background:
+    linear-gradient(135deg, rgb(255 255 255 / 0.035), transparent 36%),
+    linear-gradient(180deg, rgb(255 255 255 / 0.016), transparent 52%),
+    var(--bg-panel);
+}
+
+.console-sidebar {
+  border-right: 1px solid var(--border-subtle);
+  box-shadow: none;
+}
+
+.panel-title,
+.sidebar-brand {
+  border-bottom: 1px dotted var(--border-strong);
+}
+
+.console-sidebar .console-nav-item {
+  color: var(--text-secondary);
+}
+
+.console-sidebar .console-nav-item:hover,
+.console-sidebar .console-nav-item[data-active="true"] {
+  border-color: var(--border-strong);
+  background: var(--bg-elevated);
+  color: var(--text-primary);
+}
+
+.action-composer,
+.gate-section,
+.decision-role-grid,
+.decision-context-table,
+.decision-outcome-card,
+.infra-status-line,
+.infra-proof,
+.version-timeline pre,
+.audit-list-view pre,
+.policy-rule-grid pre {
+  background: var(--bg-inset);
+}
+
+.action-composer input,
+.action-composer select,
+.view-filter select {
+  border-color: var(--border-subtle);
+  background: var(--bg-elevated);
+  color: var(--text-primary);
+}
+
+.action-composer select,
+.role-selector select,
+.view-filter select {
+  font-family: var(--font-geist-sans), Arial, sans-serif;
+  font-size: var(--fz-sm);
+}
+
+.action-composer input {
+  font-family: var(--font-mono), ui-monospace, monospace;
+}
+
+.composer-heading button,
+.secondary-control {
+  border-color: var(--border-strong);
+  background: transparent;
+  color: var(--text-secondary);
+}
+
+.secondary-control:hover:not(:disabled),
+.composer-heading button:hover:not(:disabled),
+.action-composer input:hover,
+.action-composer select:hover,
+.view-filter select:hover {
+  border-color: var(--line-bright);
+  background: color-mix(in srgb, var(--bg-elevated) 92%, var(--white));
+  color: var(--text-primary);
+}
+
+.primary-control {
+  border-color: color-mix(in srgb, var(--state) 72%, transparent);
+  background: var(--state);
+  color: var(--bg-base);
+}
+
+.action-card {
+  border: 1px solid var(--border-subtle);
+  background: var(--bg-elevated);
+}
+
+.action-card-top {
+  display: grid;
+  align-items: flex-start;
+  grid-template-columns: minmax(0, 1fr);
+}
+
+.agent-identity,
+.agent-identity span {
+  min-width: 0;
+}
+
+.action-card .status-pill {
+  width: fit-content;
+  max-width: 100%;
+  min-height: 0;
+  align-items: flex-start;
+  line-height: 1.15;
+  padding-block: 5px;
+  white-space: normal;
+}
+
+.action-card-main > span {
+  max-width: 46%;
+  overflow-wrap: anywhere;
+  color: var(--text-secondary);
+}
+
+.action-card:hover {
+  border-color: var(--border-strong);
+  background: color-mix(in srgb, var(--bg-elevated) 94%, var(--white));
+}
+
+.action-card[data-selected="true"] {
+  border-color: color-mix(in srgb, var(--accent) 56%, var(--border-subtle));
+  background:
+    linear-gradient(135deg, color-mix(in srgb, var(--accent) 10%, transparent), transparent 58%),
+    var(--bg-elevated);
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--accent) 24%, transparent);
+}
+
+.agent-identity em,
+.action-card-main em,
+.decision-banner p,
+.decision-outcome-card li {
+  color: var(--text-secondary);
+}
+
+.gate-panel {
+  container-type: inline-size;
+}
+
+.evidence-chip-grid {
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+}
+
+.evidence-chip-grid span {
+  color: var(--text-secondary);
+}
+
+@container (min-width: 900px) {
+  .evidence-chip-grid {
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+  }
+}
+
+.ledger-rail {
+  align-items: start;
+  gap: 0;
+  margin: 4px 0 18px;
+}
+
+.rail-label {
+  min-height: 26px;
+  color: var(--text-secondary);
+}
+
+.rail-step[data-phase="pending"] .rail-label {
+  color: var(--text-tertiary);
+}
+
+.rail-step span.rail-connector {
+  height: 1px;
+  min-height: 0;
+  background: repeating-linear-gradient(90deg, var(--border-strong) 0 2px, transparent 2px 8px);
+  top: 17px;
+}
+
+.rail-step[data-phase="complete"] .rail-connector {
+  background: repeating-linear-gradient(
+    90deg,
+    color-mix(in srgb, var(--state) 72%, var(--border-strong)) 0 2px,
+    transparent 2px 8px
+  );
+}
+
+.diff-table {
+  overflow-x: visible;
+}
+
+.diff-row {
+  grid-template-columns: minmax(108px, 0.8fr) minmax(118px, 0.8fr) 18px minmax(136px, 1fr);
+  min-width: 0;
+  border: 1px solid var(--border-subtle);
+  background: var(--bg-elevated);
+}
+
+.diff-row[data-changed="true"] {
+  border-color: color-mix(in srgb, var(--state-approval) 46%, var(--border-subtle));
+}
+
+.diff-row span:nth-child(2),
+.diff-row strong {
+  background: var(--bg-inset);
+}
+
+.diff-row[data-changed="true"] strong {
+  background: color-mix(in srgb, var(--state-approval) 14%, var(--bg-inset));
+}
+
+.recorder-panel {
+  min-height: 244px;
+  background:
+    linear-gradient(rgb(255 255 255 / 0.018) 1px, transparent 1px) 0 0 / 30px 30px,
+    linear-gradient(90deg, rgb(255 255 255 / 0.014) 1px, transparent 1px) 0 0 / 30px 30px,
+    var(--bg-inset);
+}
+
+.recorder-chips span,
+.trace-row > span {
+  background: var(--bg-elevated);
+}
+
+.trace-row {
+  border-color: var(--border-subtle);
+  background: color-mix(in srgb, var(--state) 8%, var(--bg-inset));
+}
+
+.view-panel {
+  min-height: 420px;
+}
+
+.version-timeline article[data-active="true"] {
+  border-color: color-mix(in srgb, var(--state-executed) 52%, var(--border-subtle));
+  background:
+    linear-gradient(135deg, color-mix(in srgb, var(--state-executed) 10%, transparent), transparent 62%),
+    var(--bg-elevated);
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--state-executed) 22%, transparent);
+}
+
+@media (max-width: 900px) {
+  .diff-row {
+    grid-template-columns: 1fr;
+  }
+
+  .diff-row > span:nth-child(3),
+  .diff-head {
+    display: none;
+  }
+
+  .action-card .status-pill,
+  .action-card-main > span {
+    max-width: 100%;
   }
 }
 
