@@ -1652,27 +1652,73 @@ function GuidedDisasterPanel() {
   return (
     <section className="console-panel guided-disaster" aria-label="Ungoverned failure scenario">
       <div className="guided-disaster-copy">
-        <span>Ungoverned agent path</span>
+        <span className="disaster-alert-tag">INCIDENT REPORT · HIGH RISK</span>
         <h2>$3,750 lost before anyone can intervene.</h2>
         <p>
-          The agent tries to issue one $1,250 refund. A retry bug fires it three
-          times against a downstream payment system. There is no approval gate, no
-          immutable proposal, and no exact rollback path.
+          An AI agent attempts to issue a single $1,250 refund. A network retry loop fires the API call three times. Without a transactional ledger or idempotency enforcement, the company loses $3,750.
         </p>
       </div>
-      <div className="guided-loss-stack" aria-label="Triple refund failure">
-        {[1, 2, 3].map((attempt) => (
-          <article key={attempt}>
-            <span>Attempt {attempt}</span>
-            <strong>$1,250 refund sent</strong>
-            <code>no idempotency key</code>
-          </article>
-        ))}
+      
+      <div className="guided-disaster-terminal" aria-label="Simulated raw API logs">
+        <div className="terminal-header">
+          <span className="terminal-dot red" />
+          <span className="terminal-dot yellow" />
+          <span className="terminal-dot green" />
+          <span className="terminal-title">API LOGS (DOWNSTREAM PAYMENT SYSTEM)</span>
+        </div>
+        <div className="terminal-body">
+          <div className="terminal-line">
+            <span className="time">15:04:11.002</span>
+            <span className="method post">POST</span>
+            <span className="path">/payments/refund</span>
+            <span className="amount">$1,250</span>
+            <span className="badge warning">No key</span>
+          </div>
+          <div className="terminal-subline">
+            <span>└── Status: 200 OK · Action Executed</span>
+          </div>
+          
+          <div className="terminal-line error">
+            <span className="time">15:04:12.140</span>
+            <span className="method post">POST</span>
+            <span className="path">/payments/refund</span>
+            <span className="amount">$1,250</span>
+            <span className="badge warning">No key</span>
+          </div>
+          <div className="terminal-subline error-msg">
+            <span>├── Status: 200 OK · [DUPLICATE CHARGE]</span>
+          </div>
+          
+          <div className="terminal-line error">
+            <span className="time">15:04:13.250</span>
+            <span className="method post">POST</span>
+            <span className="path">/payments/refund</span>
+            <span className="amount">$1,250</span>
+            <span className="badge warning">No key</span>
+          </div>
+          <div className="terminal-subline error-msg">
+            <span>└── Status: 200 OK · [TRIPLE CHARGE]</span>
+          </div>
+        </div>
       </div>
+
       <div className="guided-disaster-total">
-        <span>Retry bug total</span>
+        <span>TOTAL REVENUE LEAK</span>
         <strong>$3,750</strong>
-        <p>No approval · no DSQL record · no undo</p>
+        <ul className="disaster-failure-list">
+          <li className="fail">
+            <span>✗</span> Idempotency key omitted
+          </li>
+          <li className="fail">
+            <span>✗</span> No policy role gates
+          </li>
+          <li className="fail">
+            <span>✗</span> No DSQL ledger write
+          </li>
+          <li className="fail">
+            <span>✗</span> No rollback capability
+          </li>
+        </ul>
       </div>
     </section>
   );
@@ -1682,12 +1728,16 @@ function GuidedDemoOverlay({
   stepIndex,
   running,
   status,
+  autoAdvance,
+  onToggleAutoAdvance,
   onNext,
   onRestart,
 }: {
   stepIndex: number;
   running: boolean;
   status: string | null;
+  autoAdvance: boolean;
+  onToggleAutoAdvance: (val: boolean) => void;
   onNext: () => void;
   onRestart: () => void;
 }) {
@@ -1719,7 +1769,20 @@ function GuidedDemoOverlay({
           <ArrowRight aria-hidden="true" size={14} />
         </button>
       </div>
-      <small>{running ? "Running real API step" : "Auto-advances every 6 seconds"}</small>
+      <div className="guided-overlay-footer">
+        <label className="guided-switch-container">
+          <span className="guided-switch-label">Auto-advance (6s)</span>
+          <div className="guided-switch">
+            <input
+              type="checkbox"
+              checked={autoAdvance}
+              onChange={(e) => onToggleAutoAdvance(e.target.checked)}
+            />
+            <span className="slider" />
+          </div>
+        </label>
+        <small>{running ? "Running API step" : ""}</small>
+      </div>
     </aside>
   );
 }
@@ -1739,6 +1802,7 @@ export function TetherConsole() {
   const guidedActionId = useRef<string | null>(null);
   const [guidedRunning, setGuidedRunning] = useState(false);
   const [guidedStatus, setGuidedStatus] = useState<string | null>(null);
+  const [autoAdvance, setAutoAdvance] = useState(false);
   const [activeView, setActiveView] = useState<ConsoleView>(() =>
     viewFromSearchParam(viewParam),
   );
@@ -1905,14 +1969,14 @@ export function TetherConsole() {
   }
 
   useEffect(() => {
-    if (!guidedMode || guidedRunning || guidedStepIndex === guidedSteps.length - 1) {
+    if (!guidedMode || !autoAdvance || guidedRunning || guidedStepIndex === guidedSteps.length - 1) {
       return;
     }
 
     const timer = window.setTimeout(nextGuidedStep, GUIDED_STEP_MS);
 
     return () => window.clearTimeout(timer);
-  }, [guidedMode, guidedRunning, guidedStepIndex]);
+  }, [guidedMode, autoAdvance, guidedRunning, guidedStepIndex]);
 
   useEffect(() => {
     if (!guidedMode || guidedExecutedStep.current === guidedStepIndex) {
@@ -2214,6 +2278,8 @@ export function TetherConsole() {
           stepIndex={guidedStepIndex}
           running={guidedRunning}
           status={guidedStatus}
+          autoAdvance={autoAdvance}
+          onToggleAutoAdvance={setAutoAdvance}
           onNext={nextGuidedStep}
           onRestart={restartGuidedDemo}
         />

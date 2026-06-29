@@ -65,11 +65,15 @@ const footerLinks = [
 function TetherLogo() {
   return (
     <span className="brand-lockup" aria-label="Tether">
-      <span className="pixel-mark" aria-hidden="true">
-        {Array.from({ length: 12 }).map((_, index) => (
-          <span key={index} />
-        ))}
-      </span>
+      <svg
+        className="tether-logo-icon"
+        viewBox="0 0 100 80"
+        aria-hidden="true"
+        style={{ width: "26px", height: "21px", color: "var(--white)" }}
+      >
+        <path d="M 48 80 L 48 16 C 48 6, 42 0, 32 0 L 10 0 C 2 0, 2 18, 10 18 L 26 18 C 36 18, 40 22, 40 32 L 40 70 L 48 80 Z" fill="currentColor" />
+        <path d="M 52 80 L 52 16 C 52 6, 58 0, 68 0 L 90 0 C 98 0, 98 18, 90 18 L 74 18 C 64 18, 60 22, 60 32 L 60 70 L 52 80 Z" fill="currentColor" />
+      </svg>
       <span>Tether</span>
     </span>
   );
