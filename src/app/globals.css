@@ -1269,8 +1269,8 @@ input:focus-visible {
 }
 
 .hero-astro-e {
-  right: 12%;
-  top: 372px;
+  right: 3%;
+  top: 380px;
   width: 45px;
 }
 
@@ -1296,8 +1296,8 @@ input:focus-visible {
 
 .hero-mini-satellite {
   width: 54px;
-  right: 0%;
-  top: 250px;
+  right: -1%;
+  top: 242px;
   transform: rotate(18deg);
 }
 
@@ -4253,11 +4253,21 @@ input:focus-visible {
   text-transform: uppercase;
 }
 
-.built-with-row > div {
+.built-with-row-primary,
+.built-with-row-secondary {
   display: flex;
-  flex-wrap: nowrap;
-  gap: clamp(12px, 1.15vw, 18px);
+  flex-wrap: wrap;
+  align-items: center;
+}
+
+.built-with-row-primary {
+  gap: clamp(18px, 1.6vw, 24px);
   margin-top: 18px;
+}
+
+.built-with-row-secondary {
+  gap: clamp(14px, 1.25vw, 20px);
+  margin-top: 13px;
 }
 
 .built-with-row strong {
@@ -4265,16 +4275,26 @@ input:focus-visible {
   align-items: center;
   gap: 7px;
   color: var(--white);
-  font-size: clamp(11px, 0.92vw, 14px);
+  font-size: clamp(13px, 0.95vw, 15px);
   font-weight: 600;
   line-height: 1;
   white-space: nowrap;
 }
 
+.built-with-row-primary strong {
+  gap: 9px;
+  font-size: clamp(16px, 1.15vw, 18px);
+  font-weight: 650;
+}
+
+.built-with-row-secondary strong {
+  color: rgb(255 255 255 / 0.92);
+}
+
 .built-logo {
   display: inline-grid;
-  width: 20px;
-  height: 20px;
+  width: 22px;
+  height: 22px;
   flex: 0 0 auto;
   place-items: center;
   color: var(--white);
@@ -4283,17 +4303,17 @@ input:focus-visible {
 .built-logo-vercel {
   width: 0;
   height: 0;
-  border-right: 9px solid transparent;
-  border-bottom: 16px solid var(--white);
-  border-left: 9px solid transparent;
+  border-right: 11px solid transparent;
+  border-bottom: 19px solid var(--white);
+  border-left: 11px solid transparent;
 }
 
 .built-logo-aws {
-  width: 31px;
+  width: 36px;
   position: relative;
   align-items: start;
   font-family: Arial, sans-serif;
-  font-size: 12px;
+  font-size: 14px;
   font-weight: 700;
   letter-spacing: -0.04em;
   line-height: 1;
@@ -4316,7 +4336,7 @@ input:focus-visible {
   border: 1px solid rgb(255 255 255 / 0.78);
   border-radius: 4px;
   font-family: var(--font-mono), ui-monospace, monospace;
-  font-size: 11px;
+  font-size: 12px;
   font-weight: 700;
   letter-spacing: 0;
 }

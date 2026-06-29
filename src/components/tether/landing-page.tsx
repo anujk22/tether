@@ -146,12 +146,12 @@ function StationScene() {
     <div className="station-scene" aria-label="Tether orbital control station">
       <div className="star-field" />
       <svg className="orbit-map" viewBox="0 0 820 520" aria-hidden="true">
-        <path d="M92 150 C184 42 386 54 586 92 C742 122 782 210 658 244 C558 272 432 230 302 206 C190 186 118 214 98 292" />
-        <path d="M64 340 C178 250 294 292 410 306 C548 322 660 294 796 330" />
-        <path d="M118 418 C222 394 230 314 214 248 C204 206 246 176 284 204" />
-        <path d="M34 388 C136 298 246 344 360 382 C470 420 584 424 700 386" />
-        <path d="M584 176 C664 150 736 166 778 222" />
-        <path d="M512 318 C598 318 618 386 690 376 C738 370 760 346 790 330" />
+        <path d="M86 106 C128 76 158 78 176 108 C198 146 160 184 124 172 C104 164 112 140 138 136 C196 128 232 178 206 216 C184 248 140 246 132 218 C124 190 162 178 214 202 C248 218 282 224 318 214" />
+        <path d="M318 72 C430 28 598 36 670 88 C736 136 726 198 654 224 C584 248 504 222 528 176 C550 132 660 130 784 206" />
+        <path d="M-18 332 C78 278 164 282 252 306 C344 332 430 378 548 386 C654 394 738 366 836 320" />
+        <path d="M72 436 C118 388 150 386 178 350 C214 304 204 254 244 226 C272 206 306 220 318 252" />
+        <path d="M484 286 C570 270 634 294 688 328 C724 350 756 346 800 312" />
+        <path d="M-22 420 C92 360 182 388 288 406 C416 426 558 424 710 386" />
       </svg>
       <Astro
         alt=""
@@ -335,8 +335,16 @@ export function LandingPage() {
               </div>
               <div className="built-with-row">
                 <span>Built with</span>
-                <div>
-                  {builtWith.map((item) => (
+                <div className="built-with-row-primary">
+                  {builtWith.slice(0, 2).map((item) => (
+                    <strong key={item.label}>
+                      <BuiltWithLogo mark={item.mark} />
+                      {item.label}
+                    </strong>
+                  ))}
+                </div>
+                <div className="built-with-row-secondary">
+                  {builtWith.slice(2).map((item) => (
                     <strong key={item.label}>
                       <BuiltWithLogo mark={item.mark} />
                       {item.label}
